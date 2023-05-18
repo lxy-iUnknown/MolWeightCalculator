@@ -1,0 +1,49 @@
+apply plugin: 'com.android.application'
+
+android {
+    namespace 'com.lxy.molweightcalculator'
+
+    compileSdkVersion 33
+
+    defaultConfig {
+        applicationId "com.lxy.molweightcalculator"
+        minSdkVersion 28
+        targetSdkVersion 33
+        versionCode 1
+        versionName "1.0"
+        resConfigs 'zh-rCN'
+    }
+    
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            zipAlignEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    dataBinding {
+        enabled true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    packagingOptions {
+        exclude '/META-INF/*.version'
+        exclude '/META-INF/com/android/build/gradle/*.properties'
+    }
+}
+
+dependencies {
+    implementation 'androidx.activity:activity:1.6.1'
+    // java.lang.NoClassDefFoundError: Failed resolution of: Landroidx/fragment/app/Fragment;
+    implementation 'androidx.fragment:fragment:1.5.5'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-savedstate:2.5.1'
+    implementation 'com.github.warkiz:TickSeekBar:master'
+    implementation 'com.jakewharton.timber:timber:5.0.1'
+
+}

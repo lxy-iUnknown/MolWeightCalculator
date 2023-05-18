@@ -1,0 +1,36 @@
+<resources>
+    <string name="app_name">分子量计算器</string>
+    <!-- Control name resources -->
+    <string name="formula">分子式：</string>
+    <string name="molecular_weight">分子量：</string>
+    <string name="precision">精确度：</string>
+    <string name="enter_formula_here">在此处输入化学式：</string>
+    <string name="show_statistics_dialog">显示元素统计列表</string>
+    <string name="confirm">确定</string>
+    <string name="sort_method">排序方式：</string>
+    <string name="sort_order">顺序：</string>
+    <string-array name="sort_methods">
+        <item>默认排序</item>
+        <item>原子序数</item>
+        <item>元素数量</item>
+        <item>质量比例</item>
+    </string-array>
+    <string-array name="sort_orders">
+        <item>升序</item>
+        <item>降序</item>
+    </string-array>
+    <!-- Error resources -->
+    <string name="empty_formula">分子式为空</string>
+    <string name="invalid_formula">分子式无效</string>
+    <string name="invalid_element">元素名称%s无效</string>
+    <string name="element_count_overflow">元素数量过大</string>
+    <string name="weight_overflow">分子量过大</string>
+    <!-- Table title resources -->
+    <string name="statistics_dialog_title">元素名称，数量及质量比例</string>
+    <!-- Table header resources -->
+    <string name="element_name">元素名称</string>
+    <string name="element_count">元素数量</string>
+    <string name="mass_ratio">质量比例</string>
+    <!-- Other resources -->
+    <string name="numbers_and_letters">0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ</string>
+</resources>
