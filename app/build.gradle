@@ -1,0 +1,194 @@
+import groovy.json.JsonSlurper
+
+import java.lang.reflect.Array
+
+apply plugin: 'com.android.application'
+
+class Element {
+    // Keep in sync with Element.java
+    public static final int BASE = 26
+    // Keep in sync with Element.java
+    public static final int ELEMENT_MAX = BASE + BASE * BASE - 1
+    // Keep in sync with Element.java
+    private static final BigDecimal FIXED_PERCENTAGE_MULTIPLIER = new BigDecimal(1_0_0_0_0 * 100)
+
+    private static final BigDecimal DOUBLE_MAX
+    private static final Map<Class<?>, Closure<StringBuilder>> PRIMITIVE_APPENDER
+
+    static {
+        var two = BigInteger.valueOf(2)
+        // 2^1024 - 2^971
+        DOUBLE_MAX = new BigDecimal(two << 1024 - two << 971)
+        var defaultAppender = {StringBuilder sb, Object value -> sb.append(value)}
+        PRIMITIVE_APPENDER = Map.of(
+                boolean[], defaultAppender,
+                byte[], defaultAppender,
+                char[], {StringBuilder sb, Object value -> sb.append((value as char) as int)},
+                short[], defaultAppender,
+                int[], defaultAppender,
+                long[], {StringBuilder sb, Object value ->
+                {
+                    sb.append(value).append('L')
+                }},
+                float[], {StringBuilder sb, Object value ->
+                {
+                    var floatValue = value as float
+                    if (Float.isNaN(floatValue)) {
+                        sb.append('Float.NaN')
+                    } else if (floatValue == Float.POSITIVE_INFINITY) {
+                        sb.append('Float.POSITIVE_INFINITY')
+                    } else if (floatValue == Float.NEGATIVE_INFINITY) {
+                        sb.append('Float.NEGATIVE_INFINITY')
+                    } else {
+                        sb.append(floatValue).append('f')
+                    }
+                }},
+                double[], {StringBuilder sb, Object value ->
+                {
+                    var doubleValue = value as double
+                    if (Double.isNaN(doubleValue)) {
+                        sb.append('Double.NaN')
+                    } else if (doubleValue == Double.POSITIVE_INFINITY) {
+                        sb.append('Double.POSITIVE_INFINITY')
+                    } else if (doubleValue == Double.NEGATIVE_INFINITY) {
+                        sb.append('Double.NEGATIVE_INFINITY')
+                    } else {
+                        sb.append(doubleValue)
+                    }
+                }},
+                String[], defaultAppender
+        )
+    }
+
+    static def arrayInitializer(Object array) {
+        var arrayType = array.getClass()
+        var name = arrayType.getSimpleName()
+        var appender = PRIMITIVE_APPENDER.get(arrayType, null)
+        if (appender == null) {
+            throw new IllegalArgumentException("Unsupported element type ${name}")
+        }
+        var length = Array.getLength(array)
+        var sb = new StringBuilder('new ').append(name).append('{')
+        for (int i = 0; i < length; i++) {
+            appender(sb, Array.get(array, i))
+            sb.append(', ')
+        }
+        return sb.append('}').toString()
+    }
+
+    static String elementIdToString(int elementId) {
+        if (elementId < BASE) {
+            return Character.toString(('A' as char + elementId) as char)
+        }
+        int div = elementId.intdiv(BASE)
+        return new String(new char[] {
+                ('A' as char + div - 1) as char,
+                ('a' as char + elementId - div * BASE) as char
+        }, 0, 2)
+    }
+
+    static def elementData(File file) {
+        final var ARRAY_SIZE = ELEMENT_MAX + 1
+
+        Map<String, String> map
+        try {
+            map = new JsonSlurper().parse(file) as Map<Object, Object>
+            var ordinals = new byte[ARRAY_SIZE]
+            var weights = new double[ARRAY_SIZE]
+            var scaledWeights = new double[ARRAY_SIZE]
+            Arrays.fill(weights, 0, ARRAY_SIZE, Double.NaN)
+            Arrays.fill(scaledWeights, 0, ARRAY_SIZE, Double.NaN)
+            Arrays.fill(ordinals, 0, ARRAY_SIZE, -1 as byte)
+            int ordinal = 1
+            for (int i = 0; i <= ELEMENT_MAX; i++) {
+                // Write element data
+                var name = elementIdToString(i)
+                if (ordinals[i] >= 0) {
+                    throw new IllegalArgumentException("Duplicate key \"${name}\" found")
+                }
+                var value = map.getOrDefault(name, null)
+                if (value != null) {
+                    var weight = value as BigDecimal
+                    if (weight.signum() <= 0) {
+                        throw new IllegalArgumentException("Weight ${weight} is not positive")
+                    }
+                    if (weight > DOUBLE_MAX) {
+                        throw new IllegalArgumentException("Weight ${weight} is too large")
+                    }
+                    if (ordinal > Byte.MAX_VALUE) {
+                        throw new IllegalArgumentException('Too many elements')
+                    }
+                    var scaledWeight = weight * FIXED_PERCENTAGE_MULTIPLIER
+                    if (scaledWeight > DOUBLE_MAX) {
+                        throw new IllegalArgumentException("Scaled weight ${weight} too large")
+                    }
+                    ordinals[i] = (ordinal++) as byte
+                    weights[i] = weight.doubleValue()
+                    scaledWeights[i] = scaledWeight.doubleValue()
+                }
+            }
+            return new Tuple3<>(ordinals, weights, scaledWeights)
+        } catch (Throwable e) {
+            throw new IllegalArgumentException('Parse element data failed', e)
+        }
+    }
+}
+
+android {
+    compileSdk 34
+
+    namespace 'com.lxy.molweightcalculator'
+
+    defaultConfig {
+        applicationId "com.lxy.molweightcalculator"
+        minSdkVersion 28
+        targetSdkVersion 34
+        versionCode 1
+        versionName "1.0"
+        resConfigs 'zh-rCN'
+
+        var file = new File(
+                new File(sourceSets.main.java.srcDirs.first(),
+                namespace.replace('.' as char, File.separatorChar)),
+                'element_data.json'
+        )
+        var info = Element.elementData(file)
+
+        buildConfigField 'byte[]', 'ELEMENT_ORDINALS', Element.arrayInitializer(info.v1)
+        buildConfigField 'double[]', 'ELEMENT_WEIGHTS', Element.arrayInitializer(info.v2)
+        buildConfigField 'double[]', 'ELEMENT_SCALED_WEIGHTS', Element.arrayInitializer(info.v3)
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    buildFeatures {
+        buildConfig true
+        dataBinding true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    packagingOptions {
+        exclude '/DebugProbesKt.bin'
+        exclude '/kotlin/*.kotlin_builtins'
+        exclude '/kotlin/**/*.kotlin_builtins'
+        exclude '/META-INF/*.version'
+    }
+}
+
+dependencies {
+    implementation 'androidx.activity:activity:1.8.2'
+    implementation 'androidx.lifecycle:lifecycle-viewmodel-savedstate:2.7.0'
+    implementation 'com.github.warkiz:TickSeekBar:master'
+    implementation 'com.jakewharton.timber:timber:5.0.1'
+    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+}

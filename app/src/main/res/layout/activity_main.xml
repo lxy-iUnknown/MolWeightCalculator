@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <import type="com.lxy.molweightcalculator.util.Utility" />
+
+        <variable
+            name="model"
+            type="com.lxy.molweightcalculator.ui.MainViewModel" />
+
+        <variable
+            name="textColor"
+            type="int" />
+
+        <variable
+            name="errorTextColor"
+            type="int" />
+
+    </data>
+
+    <GridLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:columnCount="2"
+        android:padding="@dimen/padding"
+        android:rowCount="6">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="0"
+            android:layout_column="0"
+            android:text="@string/formula"
+            android:textSize="@dimen/text_size"
+            tools:viewBindingIgnore="true" />
+
+        <EditText
+            android:id="@+id/edit_formula"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="0"
+            android:layout_column="1"
+            android:layout_gravity="fill_horizontal"
+            android:digits="@string/allowed_chars"
+            android:ems="10"
+            android:hint="@string/enter_formula_here"
+            android:importantForAutofill="no"
+            android:inputType="text"
+            android:minHeight="@dimen/min_height"
+            android:singleLine="true"
+            android:text="@={model.formula}"
+            android:textSize="@dimen/text_size"
+            tools:ignore="TextContrastCheck" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="1"
+            android:layout_column="0"
+            android:text="@string/precision"
+            android:textSize="@dimen/text_size"
+            tools:viewBindingIgnore="true" />
+
+        <com.warkiz.tickseekbar.TickSeekBar
+            android:id="@+id/seek_bar_precision"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="1"
+            android:layout_column="1"
+            android:layout_gravity="fill_horizontal"
+            app:tsb_max="@{(float)Utility.MAX_PRECISION}"
+            app:tsb_min="@{0f}"
+            app:tsb_progress="@={model.precision}"
+            app:tsb_seek_smoothly="true"
+            app:tsb_show_thumb_text="above"
+            app:tsb_show_tick_marks_type="square"
+            app:tsb_show_tick_texts="none"
+            app:tsb_ticks_count="@{Utility.MAX_PRECISION + 1}" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="2"
+            android:layout_column="0"
+            android:text="@string/molecular_weight"
+            android:textSize="@dimen/text_size"
+            tools:viewBindingIgnore="true" />
+
+        <TextView
+            android:id="@+id/text_molecular_weight"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="2"
+            android:layout_column="1"
+            android:layout_gravity="fill_horizontal"
+            android:ellipsize="middle"
+            android:padding="@dimen/padding"
+            android:singleLine="true"
+            android:text="@{model.result.getWeightString(model.precision)}"
+            android:textColor="@{model.result.succeeded ? textColor : errorTextColor}"
+            android:textSize="@dimen/text_size" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="3"
+            android:layout_column="0"
+            android:text="@string/sort_order"
+            android:textSize="@dimen/text_size"
+            tools:viewBindingIgnore="true" />
+
+        <Spinner
+            android:id="@+id/spinner_sort_order"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="3"
+            android:layout_column="1"
+            android:layout_gravity="fill_horizontal"
+            android:entries="@array/sort_orders"
+            android:minHeight="@dimen/min_height"
+            android:selectedItemPosition="@={model.sortOrder}" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="4"
+            android:layout_column="0"
+            android:text="@string/sort_method"
+            android:textSize="@dimen/text_size"
+            tools:viewBindingIgnore="true" />
+
+        <Spinner
+            android:id="@+id/spinner_sort_method"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="4"
+            android:layout_column="1"
+            android:layout_gravity="fill_horizontal"
+            android:entries="@array/sort_methods"
+            android:minHeight="@dimen/min_height"
+            android:selectedItemPosition="@={model.sortMethod}" />
+
+        <Button
+            android:id="@+id/show_statistics_dialog"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_row="5"
+            android:layout_column="0"
+            android:layout_columnSpan="2"
+            android:layout_gravity="fill_horizontal"
+            android:enabled="@{model.result.succeeded}"
+            android:text="@string/show_statistics_dialog"
+            android:textSize="@dimen/text_size" />
+    </GridLayout>
+</layout>
