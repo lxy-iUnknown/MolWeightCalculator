@@ -1,0 +1,19 @@
+[versions]
+agp = "8.3.0"
+activity = "1.8.0"
+recyclerview = "1.3.2"
+timber = "5.0.1"
+lifecycleViewmodelSavedstate = "2.7.0"
+tickseekbar = "master"
+
+[libraries]
+activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
+recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
+timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
+tickSeekBar = { group = "com.github.warkiz", name = "TickSeekBar", version.ref = "tickseekbar" }
+lifecycle-viewmodel-savedstate = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-savedstate", version.ref = "lifecycleViewmodelSavedstate" }
+
+
+[plugins]
+androidApplication = { id = "com.android.application", version.ref = "agp" }
+

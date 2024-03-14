@@ -2,8 +2,6 @@ import groovy.json.JsonSlurper
 
 import java.lang.reflect.Array
 
-apply plugin: 'com.android.application'
-
 class Element {
     // Keep in sync with Element.java
     public static final int BASE = 26
@@ -134,6 +132,10 @@ class Element {
     }
 }
 
+plugins {
+    alias(libs.plugins.androidApplication)
+}
+
 android {
     compileSdk 34
 
@@ -141,7 +143,7 @@ android {
 
     defaultConfig {
         applicationId "com.lxy.molweightcalculator"
-        minSdkVersion 28
+        minSdkVersion 26
         targetSdkVersion 34
         versionCode 1
         versionName "1.0"
@@ -186,9 +188,9 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.activity:activity:1.8.2'
-    implementation 'androidx.lifecycle:lifecycle-viewmodel-savedstate:2.7.0'
-    implementation 'com.github.warkiz:TickSeekBar:master'
-    implementation 'com.jakewharton.timber:timber:5.0.1'
-    implementation 'androidx.recyclerview:recyclerview:1.3.2'
+    implementation libs.activity
+    implementation libs.lifecycle.viewmodel.savedstate
+    implementation libs.recyclerview
+    implementation libs.tickSeekBar
+    implementation libs.timber
 }
