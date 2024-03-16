@@ -15,12 +15,11 @@ public class StateStack {
                     4 + // start
                     8;  // weight
     @NonNull
-    private static final State[] EMPTY_ELEMENTS = new State[0];
-    @NonNull
     private State[] elements;
     private int top;
 
     public StateStack(int initialCapacity) {
+        Utility.checkInitialCapacity(initialCapacity);
         MemoryUsage.allocate(STATE_SIZE, initialCapacity);
         elements = new State[initialCapacity];
         top = -1;
@@ -83,8 +82,8 @@ public class StateStack {
 
     public void purgeMemory() {
         clear();
-        // Let the garbage collector clean up memory
-        elements = EMPTY_ELEMENTS;
+        elements = new State[Utility.INITIAL_CAPACITY];
+        MemoryUsage.allocate(STATE_SIZE, Utility.INITIAL_CAPACITY);
     }
 
     public static class State {
