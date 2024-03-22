@@ -15,7 +15,7 @@ public class StatisticsItemList {
     public StatisticsItemList(@NonNull StatisticsItemList list) {
         Contract.requireNonNull(list);
         this.weight = list.weight;
-        this.items = (StatisticsItem[]) list.items.clone();
+        this.items = list.items.clone();
     }
 
     public StatisticsItemList(int size, double weight) {

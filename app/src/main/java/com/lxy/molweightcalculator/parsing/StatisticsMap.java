@@ -4,8 +4,6 @@ import androidx.annotation.NonNull;
 
 import com.lxy.molweightcalculator.BuildConfig;
 import com.lxy.molweightcalculator.contract.Contract;
-import com.lxy.molweightcalculator.contract.Operator;
-import com.lxy.molweightcalculator.contract.Value;
 import com.lxy.molweightcalculator.util.IStatistics;
 import com.lxy.molweightcalculator.util.MathUtil;
 import com.lxy.molweightcalculator.util.TraverseFunction;

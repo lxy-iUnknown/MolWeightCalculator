@@ -2,6 +2,7 @@ package com.lxy.molweightcalculator.parsing;
 
 import androidx.annotation.NonNull;
 
+import androidx.annotation.Nullable;
 import com.lxy.molweightcalculator.BuildConfig;
 import com.lxy.molweightcalculator.contract.Contract;
 import com.lxy.molweightcalculator.ui.StatisticsItem;
@@ -11,7 +12,7 @@ import com.lxy.molweightcalculator.util.Utility;
 
 import timber.log.Timber;
 
-// Hand-written recursive descent/LL(1) parser
+// Handwritten recursive descent/LL(1) parser
 // Grammar:
 // Non-terminals:
 //     Formula = Compound+
@@ -108,6 +109,7 @@ public class FormulaParser {
         stack.push(bracket, i++);
     }
 
+    @Nullable
     private FormulaParseResult handleRightBracket(int leftBracket, int rightBracket) {
         var top1 = stack.pop();
         var top2 = stack.peekNoThrow();
