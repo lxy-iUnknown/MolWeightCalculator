@@ -320,9 +320,10 @@ public class MainActivity extends ComponentActivity {
                 if (!result.isSucceeded()) {
                     var errorCode = result.getErrorCode();
                     if (FormulaParseResult.hasStartEnd(errorCode)) {
-                        var start = result.getStart();
+                        var startEnd = result.getStartEnd();
+                        var start = FormulaParseResult.extractStart(startEnd);
                         var end = FormulaParseResult.isInvalidBracket(errorCode) ?
-                                start + 1 : result.getEnd();
+                                start + 1 : FormulaParseResult.extractEnd(startEnd);
                         if (BuildConfig.DEBUG) {
                             var startValue = new Value<>("start", start);
                             var endValue = new Value<>("end", end);

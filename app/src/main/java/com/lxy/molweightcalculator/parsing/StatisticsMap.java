@@ -3,7 +3,6 @@ package com.lxy.molweightcalculator.parsing;
 import androidx.annotation.NonNull;
 
 import com.lxy.molweightcalculator.BuildConfig;
-import com.lxy.molweightcalculator.contract.Contract;
 import com.lxy.molweightcalculator.util.IStatistics;
 import com.lxy.molweightcalculator.util.MathUtil;
 import com.lxy.molweightcalculator.util.TraverseFunction;
@@ -67,23 +66,6 @@ public class StatisticsMap {
     }
 
     @SuppressWarnings("unused")
-    public long get(char key, long defaultValue) {
-        var index = indexOfKey(key);
-        if (index >= 0) {
-            return valueAt(index);
-        }
-        return defaultValue;
-    }
-
-    @SuppressWarnings("unused")
-    public void replaceAll(@NonNull ReplaceFunction function) {
-        Contract.requireNonNull(function);
-        for (int i = 0; i < size(); i++) {
-            setValueAt(i, function.replace(valueAt(i)));
-        }
-    }
-
-    @SuppressWarnings("unused")
     public void put(char key, long value) {
         int i = indexOfKey(key);
         if (i >= 0) {
@@ -93,6 +75,64 @@ public class StatisticsMap {
             insert(i, key, value);
             size++;
         }
+    }
+
+    // Simple algorithm for merging two sorted array
+    public boolean merge(@NonNull StatisticsMap other, long count) {
+        var m = size;
+        var n = other.size;
+        var keys1 = keys;
+        var keys2 = other.keys;
+        var values1 = values;
+        var values2 = other.values;
+        var total = m + n;
+        var newKeys = new char[total];
+        var newValues = new long[total];
+        long newValue;
+        int i = 0, j = 0, newSize = 0;
+        while (i < m && j < n) {
+            var key1 = keys1[i];
+            var key2 = keys2[j];
+            if (key1 < key2) {
+                newKeys[newSize] = key1;
+                newValues[newSize] = values1[i++];
+            } else if (key1 > key2) {
+                newValue = MathUtil.multiplyExact(values2[j++], count);
+                if (newValue < 0) {
+                    return false;
+                }
+                newKeys[newSize] = key2;
+                newValues[newSize] = newValue;
+            } else {
+                newValue = MathUtil.multiplyExact(values2[j++], count);
+                if (newValue < 0) {
+                    return false;
+                }
+                newValue = MathUtil.addExact(values1[i++], newValue);
+                if (newValue < 0) {
+                    return false;
+                }
+                newKeys[newSize] = key1;
+                newValues[newSize] = newValue;
+            }
+            newSize++;
+        }
+        while (i < m) {
+            newKeys[newSize] = keys1[i];
+            newValues[newSize++] = values1[i++];
+        }
+        while (j < n) {
+            newValue = MathUtil.multiplyExact(values2[j], count);
+            if (newValue < 0) {
+                return false;
+            }
+            newKeys[newSize] = keys2[j++];
+            newValues[newSize++] = newValue;
+        }
+        keys = newKeys;
+        values = newValues;
+        size = newSize;
+        return true;
     }
 
     public boolean addValueOrPut(char key, long delta) {
@@ -152,9 +192,5 @@ public class StatisticsMap {
 
     public void clear() {
         size = 0;
-    }
-
-    public interface ReplaceFunction {
-        long replace(long value);
     }
 }

@@ -3,6 +3,7 @@ package com.lxy.molweightcalculator.util;
 import androidx.annotation.NonNull;
 
 import com.lxy.molweightcalculator.contract.Contract;
+import com.lxy.molweightcalculator.parsing.Element;
 
 public interface IStatistics {
     static void appendStatistics(@NonNull StringBuilder sb,
@@ -16,12 +17,9 @@ public interface IStatistics {
 
             @Override
             public void visit(char key, long value) {
-                sb.append(key) // Element.getElementNameFromId(key)
-                        .append('=')
-                        .append(value);
-                //.append('(')
-                //.append(Element.getWeightFromId(key))
-                //.append(')');
+                sb.append(Element.getElementNameFromId(key));
+                sb.append('=');
+                sb.append(value);
                 if (--count > 0) {
                     sb.append(", ");
                 }

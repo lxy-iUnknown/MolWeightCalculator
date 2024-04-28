@@ -97,10 +97,5 @@ public class StateStack {
             this.bracket = bracket;
             this.start = start;
         }
-
-        @SuppressWarnings("BooleanMethodIsAlwaysInverted")
-        public boolean updateStatistics(char elementId, long count) {
-            return statistics.addValueOrPut(elementId, count);
-        }
     }
 }

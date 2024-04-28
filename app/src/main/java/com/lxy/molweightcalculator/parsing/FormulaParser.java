@@ -1,13 +1,12 @@
 package com.lxy.molweightcalculator.parsing;
 
 import androidx.annotation.NonNull;
-
 import androidx.annotation.Nullable;
+
 import com.lxy.molweightcalculator.BuildConfig;
 import com.lxy.molweightcalculator.contract.Contract;
 import com.lxy.molweightcalculator.ui.StatisticsItem;
 import com.lxy.molweightcalculator.ui.StatisticsItemList;
-import com.lxy.molweightcalculator.util.MathUtil;
 import com.lxy.molweightcalculator.util.Utility;
 
 import timber.log.Timber;
@@ -125,16 +124,8 @@ public class FormulaParser {
         if (count < 0) {
             return new FormulaParseResult(start, i, ParseErrorCode.ELEMENT_COUNT_TOO_LARGE);
         }
-        var statistics = top1.statistics;
-        for (int k = 0; k < statistics.size(); k++) {
-            var key = statistics.keyAt(k);
-            var value = MathUtil.multiplyExact(statistics.valueAt(k), count);
-            if (value < 0) {
-                return FormulaParseResult.ELEMENT_COUNT_OVERFLOW;
-            }
-            if (!top2.updateStatistics(key, value)) {
-                return FormulaParseResult.ELEMENT_COUNT_OVERFLOW;
-            }
+        if (!top2.statistics.merge(top1.statistics, count)) {
+            return FormulaParseResult.ELEMENT_COUNT_OVERFLOW;
         }
         var weight = top2.weight + top1.weight * count;
         if (!Double.isFinite(weight)) {
@@ -163,7 +154,7 @@ public class FormulaParser {
                 if (quantity < 0) {
                     return new FormulaParseResult(start, i, ParseErrorCode.ELEMENT_COUNT_TOO_LARGE);
                 }
-                if (!state.updateStatistics(elementId, quantity)) {
+                if (!state.statistics.addValueOrPut(elementId, quantity)) {
                     return FormulaParseResult.ELEMENT_COUNT_OVERFLOW;
                 }
                 var elementWeight = Element.getWeightFromId(elementId);

@@ -71,7 +71,7 @@ public class FormulaParseResult implements Parcelable {
     @NonNull
     private static final String[] ERROR_STRINGS;
     @NonNull
-    private static final FieldPosition DUMMY = new FieldPosition(0);
+    private static final FieldPosition FIELD_POSITION = new FieldPosition(0);
     private static final @ParseErrorCode int DEFAULT_ERROR_CODE = ParseErrorCode.EMPTY_FORMULA;
 
     static {
@@ -169,6 +169,14 @@ public class FormulaParseResult implements Parcelable {
         return errorCode == ParseErrorCode.MISMATCHED_BRACKET;
     }
 
+    public static int extractStart(long startEnd) {
+        return (int) (startEnd >>> 32);
+    }
+
+    public static int extractEnd(long startEnd) {
+        return (int) (startEnd);
+    }
+
     private void requireSucceeded() {
         if (BuildConfig.DEBUG) {
             Contract.require(isSucceeded(), "Not succeeded");
@@ -179,11 +187,6 @@ public class FormulaParseResult implements Parcelable {
         if (BuildConfig.DEBUG) {
             Contract.require(!isSucceeded(), "Not failed");
         }
-    }
-
-    @NonNull
-    private String formatBracket(@NonNull String format) {
-        return String.format(format, BRACKET_STRINGS[getEnd()]);
     }
 
     @Override
@@ -230,11 +233,11 @@ public class FormulaParseResult implements Parcelable {
             var formats = weight < MIN_SCIENTIFIC_THRESHOLD ? NORMAL_FORMATS : EXPONENTIAL_FORMATS;
             var sb = STRING_BUFFER;
             sb.setLength(0);
-            return formats[precision].format(weight, sb, DUMMY).toString();
+            return formats[precision].format(weight, sb, FIELD_POSITION).toString();
         } else {
             var errorString = ERROR_STRINGS[errorCode - ParseErrorCode.MINIMUM];
             if (isInvalidBracket(errorCode)) {
-                errorString = formatBracket(errorString);
+                errorString = String.format(errorString, extractEnd(getStartEnd()));
             }
             return errorString;
         }
@@ -244,14 +247,9 @@ public class FormulaParseResult implements Parcelable {
         return statistics != null;
     }
 
-    public int getStart() {
+    public long getStartEnd() {
         requireFailed();
-        return (int) (value >>> 32);
-    }
-
-    public int getEnd() {
-        requireFailed();
-        return (int) value;
+        return value;
     }
 
     @SuppressWarnings("DataFlowIssue")
@@ -277,12 +275,19 @@ public class FormulaParseResult implements Parcelable {
                 }
             });
         } else {
-            var start = getStart();
-            sb.append(formatBracket(ERROR_MESSAGES[errorCode - ParseErrorCode.MINIMUM]))
+            var startEnd = getStartEnd();
+            var start = extractStart(startEnd);
+            var end = extractEnd(startEnd);
+            var isInvalidBracket = isInvalidBracket(errorCode);
+            var errorString = ERROR_MESSAGES[errorCode - ParseErrorCode.MINIMUM];
+            if (isInvalidBracket) {
+                errorString = String.format(errorString, BRACKET_STRINGS[end]);
+            }
+            sb.append(errorString)
                     .append(", start=")
                     .append(start)
                     .append(", end=")
-                    .append(isInvalidBracket(errorCode) ? start + 1 : getEnd());
+                    .append(isInvalidBracket ? start + 1 : end);
         }
         return sb.append("}").toString();
     }
