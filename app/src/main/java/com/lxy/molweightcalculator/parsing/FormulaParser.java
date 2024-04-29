@@ -210,7 +210,7 @@ public class FormulaParser {
         var weight = state.weight;
         var list = new StatisticsItemList(statistics.size(), weight);
         var size = statistics.size();
-        for (int i = 0; i < size; i++) {
+        for (var i = 0; i < size; i++) {
             list.set(i, new StatisticsItem(statistics.keyAt(i), statistics.valueAt(i)));
         }
         return new FormulaParseResult(weight, list);

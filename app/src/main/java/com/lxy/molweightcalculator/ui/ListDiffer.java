@@ -34,8 +34,7 @@ public class ListDiffer {
     }
 
     public void submitList(StatisticsItemList newList) {
-        final int runGeneration = ++maxScheduledGeneration;
-
+        var runGeneration = ++maxScheduledGeneration;
         if (newList == list) {
             return;
         }
@@ -47,7 +46,7 @@ public class ListDiffer {
             list = newList;
             return;
         }
-        final StatisticsItemList oldList = list;
+        final var oldList = list;
         BACKGROUND_EXECUTOR.execute(() -> {
             final DiffUtil.DiffResult result = DiffUtil.calculateDiff(new DiffUtil.Callback() {
                 @Override

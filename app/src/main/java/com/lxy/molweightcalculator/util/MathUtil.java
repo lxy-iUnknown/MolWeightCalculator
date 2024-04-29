@@ -22,10 +22,22 @@ public class MathUtil {
     // Similar to Math.multiplyExact, but assume x >= 0 and y >= 0
     public static long multiplyExact(long x, long y) {
         checkArguments(x, y);
-        long r = x * y;
+        var r = x * y;
         if (((x | y) >>> 31 != 0) && (y != 0) && (r / y != x)) {
             return -1;
         }
         return r;
+    }
+
+    // Similar to Math.addExact(a, Math.multiplyExact(x, y)),
+    // but assume a >=0, x >= 0 and y >= 0
+    public static int multiplyAddExact(int a, int x, int y) {
+        var r = (long) x * y;
+        var ir = (int) r;
+        if (ir != r) {
+            return -1;
+        } else {
+            return a + ir;
+        }
     }
 }

@@ -45,7 +45,7 @@ public class ParcelUtil {
         Contract.requireNonNull(src);
         var size = src.readInt();
         var list = new StatisticsItemList(size, weight);
-        for (int i = 0; i < size; i++) {
+        for (var i = 0; i < size; i++) {
             list.set(i, new StatisticsItem(readChar(src), src.readLong()));
         }
         return list;
@@ -57,7 +57,7 @@ public class ParcelUtil {
         Contract.requireNonNull(statistics);
         var size = statistics.size();
         dest.writeInt(size);
-        for (int i = 0; i < size; i++) {
+        for (var i = 0; i < size; i++) {
             var item = statistics.get(i);
             writeChar(dest, item.getElementId());
             dest.writeLong(item.getCount());

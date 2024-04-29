@@ -62,7 +62,7 @@ public class StatisticsAdapter extends RecyclerView.Adapter<StatisticsAdapter.St
 
             // Mass ratio is lazily calculated
             private void recalculateMassRatio(int position) {
-                for (int i = 0; i < position; i++) {
+                for (var i = 0; i < position; i++) {
                     notifyItemChanged(convertPosition1(i) + MASS_RATIO_COLUMN);
                 }
             }

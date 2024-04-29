@@ -75,14 +75,14 @@ public class FormulaParseResult implements Parcelable {
     private static final @ParseErrorCode int DEFAULT_ERROR_CODE = ParseErrorCode.EMPTY_FORMULA;
 
     static {
-        final int PRECISION_COUNT = Utility.MAX_PRECISION + 1;
+        final var PRECISION_COUNT = Utility.MAX_PRECISION + 1;
 
         var symbols = DecimalFormatSymbols.getInstance(ULocale.ROOT);
         symbols.setExponentSeparator("x10^");
 
         var normalFormats = new DecimalFormat[PRECISION_COUNT];
         var exponentialFormats = new DecimalFormat[PRECISION_COUNT];
-        for (int precision = 0; precision < PRECISION_COUNT; precision++) {
+        for (var precision = 0; precision < PRECISION_COUNT; precision++) {
             normalFormats[precision] = getDecimalFormat(precision, false, symbols);
             exponentialFormats[precision] = getDecimalFormat(precision, true, symbols);
         }

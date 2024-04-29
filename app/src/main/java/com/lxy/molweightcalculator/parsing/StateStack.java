@@ -2,10 +2,10 @@ package com.lxy.molweightcalculator.parsing;
 
 import androidx.annotation.NonNull;
 
+import com.lxy.molweightcalculator.contract.Contract;
 import com.lxy.molweightcalculator.util.Utility;
 
 import java.util.Arrays;
-import java.util.EmptyStackException;
 
 public class StateStack {
     private static final int STATE_SIZE =
@@ -14,15 +14,19 @@ public class StateStack {
                     4 + // bracket
                     4 + // start
                     8;  // weight
-    @NonNull
+
     private State[] elements;
     private int top;
 
     public StateStack(int initialCapacity) {
+        deepReset(initialCapacity);
+    }
+
+    private void deepReset(int initialCapacity) {
         Utility.checkInitialCapacity(initialCapacity);
-        MemoryUsage.allocate(STATE_SIZE, initialCapacity);
+        MemoryUsage.memoryAllocated(STATE_SIZE, initialCapacity);
         elements = new State[initialCapacity];
-        top = -1;
+        clear();
     }
 
     public boolean isEmpty() {
@@ -41,7 +45,7 @@ public class StateStack {
         var s = size() + 1;
         if (s == elements.length) {
             var newSize = Utility.growSize(elements.length);
-            MemoryUsage.allocate(STATE_SIZE, newSize);
+            MemoryUsage.memoryAllocated(STATE_SIZE, newSize);
             elements = Arrays.copyOf(elements, newSize);
         }
         var state = elements[s];
@@ -58,7 +62,7 @@ public class StateStack {
 
     private void checkStack() {
         if (isEmpty()) {
-            throw new EmptyStackException();
+            Contract.fail("Stack is empty");
         }
     }
 
@@ -81,9 +85,7 @@ public class StateStack {
     }
 
     public void purgeMemory() {
-        clear();
-        elements = new State[Utility.INITIAL_CAPACITY];
-        MemoryUsage.allocate(STATE_SIZE, Utility.INITIAL_CAPACITY);
+        deepReset(Utility.INITIAL_CAPACITY);
     }
 
     public static class State {

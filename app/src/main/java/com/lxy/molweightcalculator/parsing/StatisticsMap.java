@@ -11,6 +11,7 @@ import com.lxy.molweightcalculator.util.Utility;
 import java.util.Arrays;
 
 public class StatisticsMap {
+    private static final int ITEM_SIZE = Character.BYTES + Long.BYTES;
     @NonNull
     private static final char[] EMPTY_CHAR = new char[0];
     @NonNull
@@ -27,7 +28,7 @@ public class StatisticsMap {
             keys = EMPTY_CHAR;
             values = EMPTY_LONG;
         } else {
-            MemoryUsage.allocate(Character.BYTES + Long.BYTES, initialCapacity);
+            MemoryUsage.memoryAllocated(ITEM_SIZE, initialCapacity);
             values = new long[initialCapacity];
             keys = new char[initialCapacity];
         }
@@ -35,7 +36,7 @@ public class StatisticsMap {
     }
 
     private void insert(int index, char key, long value) {
-        var capacity = keys.length;
+        var capacity = capacity();
         if (size + 1 <= capacity) {
             // Keys
             System.arraycopy(keys, index, keys, index + 1, size - index);
@@ -45,7 +46,7 @@ public class StatisticsMap {
             values[index] = value;
         } else {
             var newSize = Utility.growSize(size);
-            MemoryUsage.allocate(Character.BYTES + Long.BYTES, newSize);
+            MemoryUsage.memoryAllocated(ITEM_SIZE, newSize);
             // Keys
             var newKeys = new char[newSize];
             System.arraycopy(keys, 0, newKeys, 0, index);
@@ -59,6 +60,10 @@ public class StatisticsMap {
             System.arraycopy(values, index, newValues, index + 1, capacity - index);
             values = newValues;
         }
+    }
+
+    private int capacity() {
+        return keys.length;
     }
 
     public int indexOfKey(char key) {
@@ -79,17 +84,15 @@ public class StatisticsMap {
 
     // Simple algorithm for merging two sorted array
     public boolean merge(@NonNull StatisticsMap other, long count) {
-        var m = size;
-        var n = other.size;
-        var keys1 = keys;
-        var keys2 = other.keys;
-        var values1 = values;
-        var values2 = other.values;
-        var total = m + n;
+        int m = size, n = other.size;
+        char[] keys1 = keys, keys2 = other.keys;
+        long[] values1 = values, values2 = other.values;
+        var capacity2 = other.capacity();
+        var total = capacity() + capacity2;
         var newKeys = new char[total];
         var newValues = new long[total];
-        long newValue;
         int i = 0, j = 0, newSize = 0;
+        long newValue;
         while (i < m && j < n) {
             var key1 = keys1[i];
             var key2 = keys2[j];
@@ -129,6 +132,7 @@ public class StatisticsMap {
             newKeys[newSize] = keys2[j++];
             newValues[newSize++] = newValue;
         }
+        MemoryUsage.memoryAllocated(ITEM_SIZE, capacity2);
         keys = newKeys;
         values = newValues;
         size = newSize;
@@ -136,9 +140,9 @@ public class StatisticsMap {
     }
 
     public boolean addValueOrPut(char key, long delta) {
-        int i = indexOfKey(key);
+        var i = indexOfKey(key);
         if (i >= 0) {
-            long newValue = MathUtil.addExact(valueAt(i), delta);
+            var newValue = MathUtil.addExact(valueAt(i), delta);
             if (newValue < 0) {
                 return false;
             }
@@ -182,7 +186,7 @@ public class StatisticsMap {
 
             @Override
             public void forEach(@NonNull TraverseFunction function) {
-                for (int i = 0; i < StatisticsMap.this.size(); i++) {
+                for (var i = 0; i < StatisticsMap.this.size(); i++) {
                     function.visit(keyAt(i), valueAt(i));
                 }
             }
