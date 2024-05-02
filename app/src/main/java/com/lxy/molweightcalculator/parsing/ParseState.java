@@ -10,8 +10,22 @@ import com.lxy.molweightcalculator.util.Utility;
 
 import java.util.Arrays;
 
-public class StatisticsMap {
-    private static final int ITEM_SIZE = Character.BYTES + Long.BYTES;
+public class ParseState {
+    public static final int STATE_SIZE = 8 + // Object
+            4 + // keys
+            4 + // values
+            4 + // size
+            4 + // bracket
+            4 + // start
+            8;  // weight
+
+    public static final int DEFAULT_BRACKET = -1;
+    public static final int DEFAULT_START = -1;
+    @NonNull
+    private static final String[] BRACKET_STRINGS = {
+            "", "(", ")", "[", "]", "{", "}"
+    };
+    private static final int STATE_ITEM_SIZE = Character.BYTES + Long.BYTES;
     @NonNull
     private static final char[] EMPTY_CHAR = new char[0];
     @NonNull
@@ -21,18 +35,25 @@ public class StatisticsMap {
     @NonNull
     private long[] values;
     private int size;
+    private int bracket;
+    private int start;
+    private double weight;
 
-    public StatisticsMap(int initialCapacity) {
-        Utility.checkInitialCapacity(initialCapacity);
-        if (initialCapacity == 0) {
-            keys = EMPTY_CHAR;
-            values = EMPTY_LONG;
-        } else {
-            MemoryUsage.memoryAllocated(ITEM_SIZE, initialCapacity);
-            values = new long[initialCapacity];
-            keys = new char[initialCapacity];
-        }
-        size = 0;
+    public ParseState(int bracket, int start) {
+        this.keys = EMPTY_CHAR;
+        this.values = EMPTY_LONG;
+        reset(bracket, start);
+    }
+
+    public static String getBracketString(@Bracket int bracket) {
+        return BRACKET_STRINGS[bracket - Bracket.MIN_BRACKET];
+    }
+
+    public void reset(int bracket, int start) {
+        this.size = 0;
+        this.bracket = bracket;
+        this.start = start;
+        this.weight = 0;
     }
 
     private void insert(int index, char key, long value) {
@@ -46,7 +67,7 @@ public class StatisticsMap {
             values[index] = value;
         } else {
             var newSize = Utility.growSize(size);
-            MemoryUsage.memoryAllocated(ITEM_SIZE, newSize);
+            MemoryUsage.memoryAllocated(STATE_ITEM_SIZE, newSize);
             // Keys
             var newKeys = new char[newSize];
             System.arraycopy(keys, 0, newKeys, 0, index);
@@ -83,7 +104,7 @@ public class StatisticsMap {
     }
 
     // Simple algorithm for merging two sorted array
-    public boolean merge(@NonNull StatisticsMap other, long count) {
+    public boolean merge(@NonNull ParseState other, long count) {
         int m = size, n = other.size;
         char[] keys1 = keys, keys2 = other.keys;
         long[] values1 = values, values2 = other.values;
@@ -107,11 +128,7 @@ public class StatisticsMap {
                 newKeys[newSize] = key2;
                 newValues[newSize] = newValue;
             } else {
-                newValue = MathUtil.multiplyExact(values2[j++], count);
-                if (newValue < 0) {
-                    return false;
-                }
-                newValue = MathUtil.addExact(values1[i++], newValue);
+                newValue = MathUtil.multiplyAddExact(values1[i++], values2[j++], count);
                 if (newValue < 0) {
                     return false;
                 }
@@ -132,7 +149,7 @@ public class StatisticsMap {
             newKeys[newSize] = keys2[j++];
             newValues[newSize++] = newValue;
         }
-        MemoryUsage.memoryAllocated(ITEM_SIZE, capacity2);
+        MemoryUsage.memoryAllocated(STATE_ITEM_SIZE, capacity2);
         keys = newKeys;
         values = newValues;
         size = newSize;
@@ -171,13 +188,37 @@ public class StatisticsMap {
         return size;
     }
 
+    public int getBracket() {
+        return bracket;
+    }
+
+    public void setBracket(int bracket) {
+        this.bracket = bracket;
+    }
+
+    public int getStart() {
+        return start;
+    }
+
+    public void setStart(int start) {
+        this.start = start;
+    }
+
+    public double getWeight() {
+        return weight;
+    }
+
+    public void setWeight(double weight) {
+        this.weight = weight;
+    }
+
     @NonNull
     @Override
     public String toString() {
         if (!BuildConfig.DEBUG) {
             return super.toString();
         }
-        var sb = new StringBuilder();
+        var sb = new StringBuilder("ParseState(statistics=");
         IStatistics.appendStatistics(sb, new IStatistics() {
             @Override
             public int size() {
@@ -186,15 +227,17 @@ public class StatisticsMap {
 
             @Override
             public void forEach(@NonNull TraverseFunction function) {
-                for (var i = 0; i < StatisticsMap.this.size(); i++) {
+                for (var i = 0; i < ParseState.this.size(); i++) {
                     function.visit(keyAt(i), valueAt(i));
                 }
             }
         });
-        return sb.toString();
-    }
-
-    public void clear() {
-        size = 0;
+        return sb.append(", bracket=\"")
+                .append(bracket < 0 ? "<no bracket>" : getBracketString(bracket))
+                .append("\", start=")
+                .append(start)
+                .append(", weight=")
+                .append(weight)
+                .append(')').toString();
     }
 }

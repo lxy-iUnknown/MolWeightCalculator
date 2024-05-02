@@ -45,6 +45,10 @@ public class StatisticsItemList {
         items[index] = value;
     }
 
+    public double getWeight() {
+        return weight;
+    }
+
     public StatisticsItem[] getItems() {
         return items;
     }

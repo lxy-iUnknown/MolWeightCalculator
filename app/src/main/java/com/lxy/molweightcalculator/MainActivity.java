@@ -148,12 +148,12 @@ public class MainActivity extends ComponentActivity {
 
     @NonNull
     private static <T> T invalidSortMethod(int sortMethod) {
-        return Contract.unreachable("Invalid sort method ", sortMethod);
+        return Contract.fail("Invalid sort method ", sortMethod);
     }
 
     @NonNull
     private static <T> T invalidSortOrder(int sortOrder) {
-        return Contract.unreachable("Invalid sort order ", sortOrder);
+        return Contract.fail("Invalid sort order ", sortOrder);
     }
 
     @Override

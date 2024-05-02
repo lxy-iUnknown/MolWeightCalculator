@@ -11,8 +11,8 @@ import com.lxy.molweightcalculator.BuildConfig;
 import com.lxy.molweightcalculator.contract.Contract;
 import com.lxy.molweightcalculator.contract.Operator;
 import com.lxy.molweightcalculator.contract.Value;
-import com.lxy.molweightcalculator.parsing.FormulaParseResult;
-import com.lxy.molweightcalculator.parsing.FormulaParser;
+import com.lxy.molweightcalculator.parsing.ParseResult;
+import com.lxy.molweightcalculator.parsing.Parser;
 
 import timber.log.Timber;
 
@@ -43,17 +43,16 @@ public class CustomTextWatcher implements TextWatcher {
         // https://stackoverflow.com/questions/17535415/textwatcher-events-are-being-fired-multiple-times
         if (isOnTextChanged) {
             s.removeSpan(UNDERLINE);
-            var result = FormulaParser.parse(s);
+            var result = Parser.parse(s);
             if (BuildConfig.DEBUG) {
                 Timber.d("Parse result: %s", result.debugToString());
             }
             if (!result.isSucceeded()) {
                 var errorCode = result.getErrorCode();
-                if (FormulaParseResult.hasStartEnd(errorCode)) {
-                    var startEnd = result.getStartEnd();
-                    var start = FormulaParseResult.extractStart(startEnd);
-                    var end = FormulaParseResult.isInvalidBracket(errorCode) ?
-                            start + 1 : FormulaParseResult.extractEnd(startEnd);
+                if (ParseResult.hasStartEnd(errorCode)) {
+                    var start = result.getStart();
+                    var end = ParseResult.isInvalidBracket(errorCode) ?
+                            start + 1 : result.getEnd();
                     if (BuildConfig.DEBUG) {
                         var startValue = new Value<>("start", start);
                         var endValue = new Value<>("end", end);

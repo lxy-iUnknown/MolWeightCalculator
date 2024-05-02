@@ -1,7 +1,5 @@
 package com.lxy.molweightcalculator.contract;
 
-import android.annotation.SuppressLint;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -9,6 +7,7 @@ import com.lxy.molweightcalculator.BuildConfig;
 
 import timber.log.Timber;
 
+@SuppressWarnings("UnusedReturnValue")
 public class Contract {
     private static final Object[] EMPTY_ARGS = new Object[0];
 
@@ -17,10 +16,9 @@ public class Contract {
         Contract.requireNonNull(left);
         Contract.requireNonNull(right);
         Contract.requireNonNull(op);
-        Contract.require(
-                op.test(left.getValue(), right.getValue()),
-                left + op.getNegatedOpName() + right
-        );
+        if (!op.test(left.getValue(), right.getValue())) {
+            Contract.fail(left + op.getNegatedOpName() + right);
+        }
     }
 
     private static <T> T failInternal(@NonNull String message, @Nullable Throwable cause) {
@@ -30,7 +28,6 @@ public class Contract {
         throw new RuntimeException(message, cause);
     }
 
-    @SuppressLint("TimberExceptionLogging")
     @NonNull
     public static <T> T fail(@NonNull String format, @Nullable Throwable cause, Object... args) {
         return failInternal(String.format(format, args), cause);
@@ -46,14 +43,17 @@ public class Contract {
         return failInternal(message, cause);
     }
 
-    @SuppressWarnings("UnusedReturnValue")
     @NonNull
     public static <T> T fail(@NonNull String message, Object... args) {
         return fail(message, null, args);
     }
 
     @NonNull
-    public static <T> T unreachable(String message, int value) {
+    public static <T> T fail(@NonNull String message, int value) {
+        return fail(message + value);
+    }
+
+    public static <T> T fail(@NonNull String message, double value) {
         return fail(message + value);
     }
 

@@ -2,17 +2,17 @@ package com.lxy.molweightcalculator.parsing;
 
 import androidx.annotation.IntDef;
 
-@IntDef({ParseErrorCode.NO_ERROR,
-        ParseErrorCode.EMPTY_FORMULA,
-        ParseErrorCode.NO_ELEMENT,
-        ParseErrorCode.MISMATCHED_BRACKET,
-        ParseErrorCode.INVALID_TOKEN,
-        ParseErrorCode.INVALID_ELEMENT,
-        ParseErrorCode.ELEMENT_COUNT_TOO_LARGE,
-        ParseErrorCode.ELEMENT_COUNT_OVERFLOW,
-        ParseErrorCode.WEIGHT_OVERFLOW,
+@IntDef({ErrorCode.NO_ERROR,
+        ErrorCode.EMPTY_FORMULA,
+        ErrorCode.NO_ELEMENT,
+        ErrorCode.MISMATCHED_BRACKET,
+        ErrorCode.INVALID_TOKEN,
+        ErrorCode.INVALID_ELEMENT,
+        ErrorCode.ELEMENT_COUNT_TOO_LARGE,
+        ErrorCode.ELEMENT_COUNT_OVERFLOW,
+        ErrorCode.WEIGHT_OVERFLOW,
 })
-public @interface ParseErrorCode {
+public @interface ErrorCode {
     int NO_ERROR = 0;
     int EMPTY_FORMULA = 1;
     int NO_ELEMENT = 2;

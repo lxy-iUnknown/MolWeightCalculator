@@ -153,7 +153,7 @@ public class StatisticsAdapter extends RecyclerView.Adapter<StatisticsAdapter.St
     }
 
     private static String invalidColumn(int column) {
-        return Contract.unreachable("Invalid column ", column);
+        return Contract.fail("Invalid column ", column);
     }
 
     @NonNull

@@ -41,8 +41,9 @@ public class ParcelUtil {
     }
 
     @NonNull
-    public static StatisticsItemList readStatistics(@NonNull Parcel src, double weight) {
+    public static StatisticsItemList readStatistics(@NonNull Parcel src) {
         Contract.requireNonNull(src);
+        var weight = src.readDouble();
         var size = src.readInt();
         var list = new StatisticsItemList(size, weight);
         for (var i = 0; i < size; i++) {
@@ -55,6 +56,7 @@ public class ParcelUtil {
                                        @NonNull StatisticsItemList statistics) {
         Contract.requireNonNull(dest);
         Contract.requireNonNull(statistics);
+        dest.writeDouble(statistics.getWeight());
         var size = statistics.size();
         dest.writeInt(size);
         for (var i = 0; i < size; i++) {

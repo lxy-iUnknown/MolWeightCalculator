@@ -7,7 +7,7 @@ import androidx.lifecycle.SavedStateHandle;
 import androidx.lifecycle.ViewModel;
 
 import com.lxy.molweightcalculator.contract.Contract;
-import com.lxy.molweightcalculator.parsing.FormulaParseResult;
+import com.lxy.molweightcalculator.parsing.ParseResult;
 import com.lxy.molweightcalculator.util.Utility;
 
 public class MainViewModel extends ViewModel {
@@ -16,9 +16,9 @@ public class MainViewModel extends ViewModel {
     private final SavedStateHandler<Integer> precision =
             new SavedStateHandler<>("Precision", Utility.MAX_PRECISION / 2);
     @NonNull
-    private final SavedStateHandler<FormulaParseResult> result =
+    private final SavedStateHandler<ParseResult> result =
             new SavedStateHandler<>("Result",
-                    FormulaParseResult.EMPTY_FORMULA);
+                    ParseResult.EMPTY_FORMULA);
     @NonNull
     private final SavedStateHandler<String> formula =
             new SavedStateHandler<>("Formula", "");
@@ -41,7 +41,7 @@ public class MainViewModel extends ViewModel {
     }
 
     @NonNull
-    public MutableLiveData<FormulaParseResult> getResult() {
+    public MutableLiveData<ParseResult> getResult() {
         return result.getLiveData(handle);
     }
 

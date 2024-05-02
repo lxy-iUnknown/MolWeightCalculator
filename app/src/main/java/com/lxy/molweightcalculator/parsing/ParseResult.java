@@ -25,27 +25,27 @@ import java.text.FieldPosition;
 
 import timber.log.Timber;
 
-public class FormulaParseResult implements Parcelable {
+public class ParseResult implements Parcelable {
     @NonNull
-    public static final Creator<FormulaParseResult> CREATOR = new Creator<>() {
+    public static final Creator<ParseResult> CREATOR = new Creator<>() {
         @NonNull
         @Override
-        public FormulaParseResult createFromParcel(Parcel in) {
-            return new FormulaParseResult(in);
+        public ParseResult createFromParcel(Parcel in) {
+            return new ParseResult(in);
         }
 
         @NonNull
         @Override
-        public FormulaParseResult[] newArray(int size) {
-            return new FormulaParseResult[size];
+        public ParseResult[] newArray(int size) {
+            return new ParseResult[size];
         }
     };
     @NonNull
-    public static final FormulaParseResult EMPTY_FORMULA =
-            new FormulaParseResult(ParseErrorCode.EMPTY_FORMULA);
+    public static final ParseResult EMPTY_FORMULA =
+            new ParseResult(ErrorCode.EMPTY_FORMULA);
     @NonNull
-    public static final FormulaParseResult ELEMENT_COUNT_OVERFLOW =
-            new FormulaParseResult(ParseErrorCode.ELEMENT_COUNT_OVERFLOW);
+    public static final ParseResult ELEMENT_COUNT_OVERFLOW =
+            new ParseResult(ErrorCode.ELEMENT_COUNT_OVERFLOW);
     private static final double MIN_SCIENTIFIC_THRESHOLD = 1e10;
     @NonNull
     private static final String[] ERROR_MESSAGES = {
@@ -59,10 +59,6 @@ public class FormulaParseResult implements Parcelable {
             "WEIGHT_OVERFLOW",
     };
     @NonNull
-    private static final String[] BRACKET_STRINGS = {
-            "(", ")", "[", "]", "{", "}"
-    };
-    @NonNull
     private static final StringBuffer STRING_BUFFER = new StringBuffer(10); // 1.7977e308
     @NonNull
     private static final DecimalFormat[] NORMAL_FORMATS;
@@ -72,7 +68,7 @@ public class FormulaParseResult implements Parcelable {
     private static final String[] ERROR_STRINGS;
     @NonNull
     private static final FieldPosition FIELD_POSITION = new FieldPosition(0);
-    private static final @ParseErrorCode int DEFAULT_ERROR_CODE = ParseErrorCode.EMPTY_FORMULA;
+    private static final @ErrorCode int DUMMY_ERROR_CODE = ErrorCode.EMPTY_FORMULA;
 
     static {
         final var PRECISION_COUNT = Utility.MAX_PRECISION + 1;
@@ -91,38 +87,42 @@ public class FormulaParseResult implements Parcelable {
         ERROR_STRINGS = GlobalContext.get().getResources().getStringArray(R.array.error_stings);
     }
 
-    private final long value;
-    @ParseErrorCode
-    private final int errorCode;
     @Nullable
     private final StatisticsItemList statistics;
+    private final int start;
+    private final int end;
+    @ErrorCode
+    private final int errorCode;
 
-    private FormulaParseResult(@NonNull Parcel in) {
-        var succeeded = ParcelUtil.readBoolean(in);
-        var value = in.readLong();
-        if (succeeded) {
-            this.statistics = ParcelUtil.readStatistics(in, Double.longBitsToDouble(value));
-            this.errorCode = DEFAULT_ERROR_CODE;
+    private ParseResult(@NonNull Parcel in) {
+        if (ParcelUtil.readBoolean(in)) {
+            this.statistics = ParcelUtil.readStatistics(in);
+            this.start = -1;
+            this.end = -1;
+            this.errorCode = DUMMY_ERROR_CODE;
         } else {
             this.statistics = null;
+            this.start = in.readInt();
+            this.end = in.readInt();
             this.errorCode = validateErrorCode(in.readInt());
         }
-        this.value = value;
     }
 
-    public FormulaParseResult(int start, int end, @ParseErrorCode int errorCode) {
-        this.value = ((long) start << 32) | end;
+    public ParseResult(int start, int end, @ErrorCode int errorCode) {
         this.statistics = null;
+        this.start = start;
+        this.end = end;
         this.errorCode = errorCode;
     }
 
-    public FormulaParseResult(double weight, @NonNull StatisticsItemList statistics) {
-        this.value = Double.doubleToRawLongBits(weight);
-        this.errorCode = DEFAULT_ERROR_CODE;
+    public ParseResult(@NonNull StatisticsItemList statistics) {
         this.statistics = Contract.requireNonNull(statistics);
+        this.start = -1;
+        this.end = -1;
+        this.errorCode = DUMMY_ERROR_CODE;
     }
 
-    private FormulaParseResult(@ParseErrorCode int errorCode) {
+    private ParseResult(@ErrorCode int errorCode) {
         this(-1, -1, errorCode);
     }
 
@@ -147,34 +147,26 @@ public class FormulaParseResult implements Parcelable {
         return format;
     }
 
-    private static @ParseErrorCode int validateErrorCode(@ParseErrorCode int errorCode) {
+    private static @ErrorCode int validateErrorCode(@ErrorCode int errorCode) {
         if (BuildConfig.DEBUG) {
             Contract.requireInRangeInclusive(new Value<>("errorCode", errorCode),
-                    ParseErrorCode.MINIMUM, ParseErrorCode.MAXIMUM);
+                    ErrorCode.MINIMUM, ErrorCode.MAXIMUM);
         }
         return errorCode;
     }
 
-    public static boolean hasStartEnd(@ParseErrorCode int errorCode) {
-        final var NO_START_END = (1 << ParseErrorCode.EMPTY_FORMULA) |
-                (1 << ParseErrorCode.ELEMENT_COUNT_OVERFLOW) |
-                (1 << ParseErrorCode.WEIGHT_OVERFLOW);
+    public static boolean hasStartEnd(@ErrorCode int errorCode) {
+        final var NO_START_END = (1 << ErrorCode.EMPTY_FORMULA) |
+                (1 << ErrorCode.ELEMENT_COUNT_OVERFLOW) |
+                (1 << ErrorCode.WEIGHT_OVERFLOW);
 
         validateErrorCode(errorCode);
         return (NO_START_END & (1 << errorCode)) == 0;
     }
 
-    public static boolean isInvalidBracket(@ParseErrorCode int errorCode) {
+    public static boolean isInvalidBracket(@ErrorCode int errorCode) {
         validateErrorCode(errorCode);
-        return errorCode == ParseErrorCode.MISMATCHED_BRACKET;
-    }
-
-    public static int extractStart(long startEnd) {
-        return (int) (startEnd >>> 32);
-    }
-
-    public static int extractEnd(long startEnd) {
-        return (int) (startEnd);
+        return errorCode == ErrorCode.MISMATCHED_BRACKET;
     }
 
     private void requireSucceeded() {
@@ -183,20 +175,15 @@ public class FormulaParseResult implements Parcelable {
         }
     }
 
-    private void requireFailed() {
-        if (BuildConfig.DEBUG) {
-            Contract.require(!isSucceeded(), "Not failed");
-        }
-    }
-
     @Override
     public void writeToParcel(@NonNull Parcel dest, int flags) {
         var succeeded = isSucceeded();
         ParcelUtil.writeBoolean(dest, succeeded);
-        dest.writeLong(value);
         if (succeeded) {
             ParcelUtil.writeStatistics(dest, getStatistics());
         } else {
+            dest.writeInt(start);
+            dest.writeInt(end);
             dest.writeInt(errorCode);
         }
     }
@@ -214,10 +201,10 @@ public class FormulaParseResult implements Parcelable {
 
     public double getWeight() {
         requireSucceeded();
-        return Double.longBitsToDouble(value);
+        return getStatistics().getWeight();
     }
 
-    @ParseErrorCode
+    @ErrorCode
     public int getErrorCode() {
         return errorCode;
     }
@@ -235,9 +222,9 @@ public class FormulaParseResult implements Parcelable {
             sb.setLength(0);
             return formats[precision].format(weight, sb, FIELD_POSITION).toString();
         } else {
-            var errorString = ERROR_STRINGS[errorCode - ParseErrorCode.MINIMUM];
+            var errorString = ERROR_STRINGS[errorCode - ErrorCode.MINIMUM];
             if (isInvalidBracket(errorCode)) {
-                errorString = String.format(errorString, extractEnd(getStartEnd()));
+                errorString = String.format(errorString, getEnd());
             }
             return errorString;
         }
@@ -247,9 +234,12 @@ public class FormulaParseResult implements Parcelable {
         return statistics != null;
     }
 
-    public long getStartEnd() {
-        requireFailed();
-        return value;
+    public int getStart() {
+        return start;
+    }
+
+    public int getEnd() {
+        return end;
     }
 
     @SuppressWarnings("DataFlowIssue")
@@ -275,13 +265,10 @@ public class FormulaParseResult implements Parcelable {
                 }
             });
         } else {
-            var startEnd = getStartEnd();
-            var start = extractStart(startEnd);
-            var end = extractEnd(startEnd);
             var isInvalidBracket = isInvalidBracket(errorCode);
-            var errorString = ERROR_MESSAGES[errorCode - ParseErrorCode.MINIMUM];
+            var errorString = ERROR_MESSAGES[errorCode - ErrorCode.MINIMUM];
             if (isInvalidBracket) {
-                errorString = String.format(errorString, BRACKET_STRINGS[end]);
+                errorString = String.format(errorString, ParseState.getBracketString(end));
             }
             sb.append(errorString)
                     .append(", start=")
