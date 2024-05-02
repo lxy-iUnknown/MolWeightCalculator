@@ -12,6 +12,7 @@ import timber.log.Timber;
 
 public class MemoryUsage {
     private static final long PURGE_THRESHOLD;
+    private static long USAGE;
 
     static {
         final var KB = 1024;
@@ -37,8 +38,6 @@ public class MemoryUsage {
         // Minimum threshold: 64KB
         PURGE_THRESHOLD = Math.min(available >>> 8, 64 * 1024);
     }
-
-    private static long USAGE;
 
     private MemoryUsage() {
     }
