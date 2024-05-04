@@ -17,7 +17,6 @@ import java.util.Arrays;
 public class Element {
     private static final int BASE = 26;
     private static final int ELEMENT_MAX = BASE + BASE * BASE - 1;
-    private static final int FIXED_PERCENTAGE_MULTIPLIER = 1_0_0_0_0 * 100;
 
     @NonNull
     private static final int[] ELEMENT_ORDINALS;
@@ -104,9 +103,5 @@ public class Element {
 
     public static double getWeightFromId(char elementId) {
         return ELEMENT_WEIGHTS[validateElementId(elementId)];
-    }
-
-    public static double getScaledWeightFromId(char elementId) {
-        return getWeightFromId(elementId) * FIXED_PERCENTAGE_MULTIPLIER;
     }
 }

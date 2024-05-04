@@ -6,7 +6,8 @@ import androidx.annotation.Nullable;
 import com.lxy.molweightcalculator.BuildConfig;
 import com.lxy.molweightcalculator.contract.Contract;
 import com.lxy.molweightcalculator.ui.StatisticsItem;
-import com.lxy.molweightcalculator.ui.StatisticsItemList;
+
+import java.util.ArrayList;
 
 import timber.log.Timber;
 
@@ -199,11 +200,11 @@ public class Parser {
         }
         tryPurgeMemory();
         var weight = state.getWeight();
-        var list = new StatisticsItemList(state.size(), weight);
+        var list = new ArrayList<StatisticsItem>(state.size());
         var size = state.size();
         for (var i = 0; i < size; i++) {
-            list.set(i, new StatisticsItem(state.keyAt(i), state.valueAt(i)));
+            list.add(i, new StatisticsItem(state.keyAt(i), state.valueAt(i)));
         }
-        return new ParseResult(list);
+        return new ParseResult(list, weight);
     }
 }

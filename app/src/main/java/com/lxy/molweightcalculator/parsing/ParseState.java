@@ -23,7 +23,7 @@ public class ParseState {
     public static final int DEFAULT_START = -1;
     @NonNull
     private static final String[] BRACKET_STRINGS = {
-            "", "(", ")", "[", "]", "{", "}"
+            "(", ")", "[", "]", "{", "}"
     };
     private static final int STATE_ITEM_SIZE = Character.BYTES + Long.BYTES;
     @NonNull
@@ -192,16 +192,8 @@ public class ParseState {
         return bracket;
     }
 
-    public void setBracket(int bracket) {
-        this.bracket = bracket;
-    }
-
     public int getStart() {
         return start;
-    }
-
-    public void setStart(int start) {
-        this.start = start;
     }
 
     public double getWeight() {

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="background_color">#FFFFFF</color>
+    <color name="text_color">#000000</color>
     <color name="launcher_background">#FFFFFF</color>
     <color name="error_text_color">#FF4081</color>
 </resources>

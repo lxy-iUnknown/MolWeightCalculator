@@ -3,4 +3,7 @@
     android:id="@+id/text_item"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:textSize="@dimen/text_size"
+    android:textColor="@color/text_color"
+    android:background="@color/background_color"
     android:gravity="center" />

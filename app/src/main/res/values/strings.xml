@@ -6,7 +6,7 @@
     <string name="precision">精确度：</string>
     <string name="enter_formula_here">在此处输入化学式：</string>
     <string name="show_statistics_dialog">显示元素统计列表</string>
-    <string name="confirm">确定</string>
+    <string name="statistics_table">元素统计列表：</string>
     <string name="sort_method">排序方式：</string>
     <string name="sort_order">顺序：</string>
     <string-array name="sort_methods">
@@ -30,8 +30,6 @@
         <item>计算元素数量时发生溢出</item>
         <item>分子量过大</item>
     </string-array>
-    <!-- Table title resources -->
-    <string name="statistics_dialog_title">元素名称，数量及质量比例</string>
     <!-- Table header resources -->
     <string name="element_name">元素名称</string>
     <string name="element_count">元素数量</string>

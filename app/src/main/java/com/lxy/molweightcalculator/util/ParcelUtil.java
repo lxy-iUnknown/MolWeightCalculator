@@ -8,7 +8,9 @@ import com.lxy.molweightcalculator.BuildConfig;
 import com.lxy.molweightcalculator.contract.Contract;
 import com.lxy.molweightcalculator.contract.Value;
 import com.lxy.molweightcalculator.ui.StatisticsItem;
-import com.lxy.molweightcalculator.ui.StatisticsItemList;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ParcelUtil {
     private ParcelUtil() {
@@ -41,22 +43,20 @@ public class ParcelUtil {
     }
 
     @NonNull
-    public static StatisticsItemList readStatistics(@NonNull Parcel src) {
-        Contract.requireNonNull(src);
-        var weight = src.readDouble();
-        var size = src.readInt();
-        var list = new StatisticsItemList(size, weight);
+    public static List<StatisticsItem> readStatistics(@NonNull Parcel source) {
+        Contract.requireNonNull(source);
+        var size = source.readInt();
+        var list = new ArrayList<StatisticsItem>(size);
         for (var i = 0; i < size; i++) {
-            list.set(i, new StatisticsItem(readChar(src), src.readLong()));
+            list.set(i, new StatisticsItem(readChar(source), source.readLong()));
         }
         return list;
     }
 
     public static void writeStatistics(@NonNull Parcel dest,
-                                       @NonNull StatisticsItemList statistics) {
+                                       @NonNull List<StatisticsItem> statistics) {
         Contract.requireNonNull(dest);
         Contract.requireNonNull(statistics);
-        dest.writeDouble(statistics.getWeight());
         var size = statistics.size();
         dest.writeInt(size);
         for (var i = 0; i < size; i++) {

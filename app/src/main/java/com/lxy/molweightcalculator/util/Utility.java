@@ -1,8 +1,7 @@
 package com.lxy.molweightcalculator.util;
 
 public class Utility {
-    public static final int MAX_PRECISION = 4;
-    public static final int FIXED_POINT_MULTIPLIER = 1_0_0_0_0; // Four digits after decimal point
+    public static final int MAX_PRECISION = 7;
     public static final int INITIAL_CAPACITY = 8;
 
     public static int growSize(int currentSize) {

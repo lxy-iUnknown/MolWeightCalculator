@@ -1,12 +1,10 @@
 package com.lxy.molweightcalculator.ui;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.SavedStateHandle;
 import androidx.lifecycle.ViewModel;
 
-import com.lxy.molweightcalculator.contract.Contract;
 import com.lxy.molweightcalculator.parsing.ParseResult;
 import com.lxy.molweightcalculator.util.Utility;
 
@@ -58,26 +56,5 @@ public class MainViewModel extends ViewModel {
     @NonNull
     public MutableLiveData<Integer> getSortOrder() {
         return sortOrder.getLiveData(handle);
-    }
-
-    @SuppressWarnings("ClassCanBeRecord")
-    private static class SavedStateHandler<T> {
-        @NonNull
-        private final String key;
-        @Nullable
-        private final T defaultValue;
-
-        private SavedStateHandler(@NonNull String key, @Nullable T defaultValue) {
-            this.key = Contract.requireNonNull(key);
-            this.defaultValue = defaultValue;
-        }
-
-        @NonNull
-        public MutableLiveData<T> getLiveData(@NonNull SavedStateHandle handle) {
-            if (!handle.contains(key)) {
-                handle.set(key, defaultValue);
-            }
-            return handle.getLiveData(key);
-        }
     }
 }

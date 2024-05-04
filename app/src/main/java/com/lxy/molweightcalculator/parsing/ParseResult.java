@@ -13,7 +13,7 @@ import com.lxy.molweightcalculator.BuildConfig;
 import com.lxy.molweightcalculator.R;
 import com.lxy.molweightcalculator.contract.Contract;
 import com.lxy.molweightcalculator.contract.Value;
-import com.lxy.molweightcalculator.ui.StatisticsItemList;
+import com.lxy.molweightcalculator.ui.StatisticsItem;
 import com.lxy.molweightcalculator.util.GlobalContext;
 import com.lxy.molweightcalculator.util.IStatistics;
 import com.lxy.molweightcalculator.util.ParcelUtil;
@@ -22,24 +22,11 @@ import com.lxy.molweightcalculator.util.Utility;
 
 import java.math.RoundingMode;
 import java.text.FieldPosition;
+import java.util.List;
 
 import timber.log.Timber;
 
 public class ParseResult implements Parcelable {
-    @NonNull
-    public static final Creator<ParseResult> CREATOR = new Creator<>() {
-        @NonNull
-        @Override
-        public ParseResult createFromParcel(Parcel in) {
-            return new ParseResult(in);
-        }
-
-        @NonNull
-        @Override
-        public ParseResult[] newArray(int size) {
-            return new ParseResult[size];
-        }
-    };
     @NonNull
     public static final ParseResult EMPTY_FORMULA =
             new ParseResult(ErrorCode.EMPTY_FORMULA);
@@ -69,6 +56,20 @@ public class ParseResult implements Parcelable {
     @NonNull
     private static final FieldPosition FIELD_POSITION = new FieldPosition(0);
     private static final @ErrorCode int DUMMY_ERROR_CODE = ErrorCode.EMPTY_FORMULA;
+    @NonNull
+    public static final Creator<ParseResult> CREATOR = new Creator<>() {
+        @NonNull
+        @Override
+        public ParseResult createFromParcel(Parcel source) {
+            return ParseResult.readParseResult(source);
+        }
+
+        @NonNull
+        @Override
+        public ParseResult[] newArray(int size) {
+            return new ParseResult[size];
+        }
+    };
 
     static {
         final var PRECISION_COUNT = Utility.MAX_PRECISION + 1;
@@ -88,42 +89,56 @@ public class ParseResult implements Parcelable {
     }
 
     @Nullable
-    private final StatisticsItemList statistics;
-    private final int start;
-    private final int end;
+    private final List<StatisticsItem> statistics;
+    private final long value;
     @ErrorCode
     private final int errorCode;
 
-    private ParseResult(@NonNull Parcel in) {
-        if (ParcelUtil.readBoolean(in)) {
-            this.statistics = ParcelUtil.readStatistics(in);
-            this.start = -1;
-            this.end = -1;
-            this.errorCode = DUMMY_ERROR_CODE;
-        } else {
-            this.statistics = null;
-            this.start = in.readInt();
-            this.end = in.readInt();
-            this.errorCode = validateErrorCode(in.readInt());
-        }
+    private ParseResult(@ErrorCode int errorCode) {
+        this(null, -1, errorCode);
     }
 
     public ParseResult(int start, int end, @ErrorCode int errorCode) {
-        this.statistics = null;
-        this.start = start;
-        this.end = end;
+        this(null, ((long) end << 32) | start, errorCode);
+    }
+
+    public ParseResult(@NonNull List<StatisticsItem> statistics, double weight) {
+        this(Contract.requireNonNull(statistics),
+                Double.doubleToRawLongBits(weight), DUMMY_ERROR_CODE);
+    }
+
+    private ParseResult(@Nullable List<StatisticsItem> statistics, long value, int errorCode) {
+        this.statistics = statistics;
+        this.value = value;
         this.errorCode = errorCode;
     }
 
-    public ParseResult(@NonNull StatisticsItemList statistics) {
-        this.statistics = Contract.requireNonNull(statistics);
-        this.start = -1;
-        this.end = -1;
-        this.errorCode = DUMMY_ERROR_CODE;
+    @NonNull
+    private static ParseResult readParseResult(@NonNull Parcel source) {
+        Contract.requireNonNull(source);
+        var value = source.readLong();
+        List<StatisticsItem> statistics;
+        int errorCode;
+        if (ParcelUtil.readBoolean(source)) {
+            statistics = ParcelUtil.readStatistics(source);
+            errorCode = DUMMY_ERROR_CODE;
+        } else {
+            statistics = null;
+            errorCode = validateErrorCode(source.readInt());
+        }
+        return new ParseResult(statistics, value, errorCode);
     }
 
-    private ParseResult(@ErrorCode int errorCode) {
-        this(-1, -1, errorCode);
+    private static void writeParseResult(@NonNull Parcel dest, @NonNull ParseResult result) {
+        Contract.requireNonNull(dest);
+        var succeeded = result.isSucceeded();
+        ParcelUtil.writeBoolean(dest, succeeded);
+        dest.writeLong(result.value);
+        if (succeeded) {
+            ParcelUtil.writeStatistics(dest, result.getStatistics());
+        } else {
+            dest.writeInt(result.errorCode);
+        }
     }
 
     @NonNull
@@ -175,38 +190,20 @@ public class ParseResult implements Parcelable {
         }
     }
 
+    private void requireFailed() {
+        if (BuildConfig.DEBUG) {
+            Contract.require(!isSucceeded(), "Succeeded");
+        }
+    }
+
     @Override
     public void writeToParcel(@NonNull Parcel dest, int flags) {
-        var succeeded = isSucceeded();
-        ParcelUtil.writeBoolean(dest, succeeded);
-        if (succeeded) {
-            ParcelUtil.writeStatistics(dest, getStatistics());
-        } else {
-            dest.writeInt(start);
-            dest.writeInt(end);
-            dest.writeInt(errorCode);
-        }
+        writeParseResult(dest, this);
     }
 
     @Override
     public int describeContents() {
         return 0;
-    }
-
-    @NonNull
-    public StatisticsItemList getStatistics() {
-        requireSucceeded();
-        return Contract.requireNonNull(statistics);
-    }
-
-    public double getWeight() {
-        requireSucceeded();
-        return getStatistics().getWeight();
-    }
-
-    @ErrorCode
-    public int getErrorCode() {
-        return errorCode;
     }
 
     @NonNull
@@ -224,7 +221,7 @@ public class ParseResult implements Parcelable {
         } else {
             var errorString = ERROR_STRINGS[errorCode - ErrorCode.MINIMUM];
             if (isInvalidBracket(errorCode)) {
-                errorString = String.format(errorString, getEnd());
+                errorString = String.format(errorString, ParseState.getBracketString(getEnd()));
             }
             return errorString;
         }
@@ -234,12 +231,31 @@ public class ParseResult implements Parcelable {
         return statistics != null;
     }
 
+    @NonNull
+    public List<StatisticsItem> getStatistics() {
+        requireSucceeded();
+        return Contract.requireNonNull(statistics);
+    }
+
+    public double getWeight() {
+        requireSucceeded();
+        return Double.longBitsToDouble(value);
+    }
+
+    @ErrorCode
+    public int getErrorCode() {
+        requireFailed();
+        return errorCode;
+    }
+
     public int getStart() {
-        return start;
+        requireFailed();
+        return (int) value;
     }
 
     public int getEnd() {
-        return end;
+        requireFailed();
+        return (int) (value >>> 32);
     }
 
     @SuppressWarnings("DataFlowIssue")
@@ -259,7 +275,7 @@ public class ParseResult implements Parcelable {
 
                 @Override
                 public void forEach(@NonNull TraverseFunction function) {
-                    for (var item : statistics.getItems()) {
+                    for (var item : statistics) {
                         function.visit(item.getElementId(), item.getCount());
                     }
                 }
@@ -268,13 +284,13 @@ public class ParseResult implements Parcelable {
             var isInvalidBracket = isInvalidBracket(errorCode);
             var errorString = ERROR_MESSAGES[errorCode - ErrorCode.MINIMUM];
             if (isInvalidBracket) {
-                errorString = String.format(errorString, ParseState.getBracketString(end));
+                errorString = String.format(errorString, ParseState.getBracketString(getEnd()));
             }
             sb.append(errorString)
                     .append(", start=")
-                    .append(start)
+                    .append(getStart())
                     .append(", end=")
-                    .append(isInvalidBracket ? start + 1 : end);
+                    .append(isInvalidBracket ? getStart() + 1 : getEnd());
         }
         return sb.append("}").toString();
     }
