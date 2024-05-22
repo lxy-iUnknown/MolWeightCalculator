@@ -1,19 +1,27 @@
 [versions]
-activity = "1.8.2"
-agp = "8.4.0"
-lifecycleViewmodelSavedstate = "2.7.0"
-recyclerview = "1.3.2"
-tickseekbar = "master"
+activityCompose = "1.8.0"
+adaptive = "1.0.0-beta01"
+agp = "8.5.0-alpha08"
+composeBom = "2023.08.00"
+coreKtx = "1.10.1"
+kotlin = "1.9.0"
+lifecycleViewmodelCompose = "2.8.0"
+startupRuntime = "1.2.0-alpha02"
 timber = "5.0.1"
 
-
 [libraries]
-activity = { group = "androidx.activity", name = "activity", version.ref = "activity" }
-lifecycle-viewmodel-savedstate = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-savedstate", version.ref = "lifecycleViewmodelSavedstate" }
-recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
-tickSeekBar = { group = "com.github.warkiz", name = "TickSeekBar", version.ref = "tickseekbar" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+androidx-adaptive = { group = "androidx.compose.material3.adaptive", name = "adaptive", version.ref = "adaptive" }
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
+androidx-startup-runtime = { group = "androidx.startup", name = "startup-runtime", version.ref = "startupRuntime" }
+androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 timber = { group = "com.jakewharton.timber", name = "timber", version.ref = "timber" }
 
 [plugins]
-androidApplication = { id = "com.android.application", version.ref = "agp" }
+android-application = { id = "com.android.application", version.ref = "agp" }
+jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 
