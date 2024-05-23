@@ -16,28 +16,21 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringArrayResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.SavedStateHandle
-import com.lxy.molweightcalculator.BuildConfig
-import com.lxy.molweightcalculator.R
 import com.lxy.molweightcalculator.parsing.ParseResult
 import com.lxy.molweightcalculator.ui.DeviceKind
-import com.lxy.molweightcalculator.ui.DropDownView
 import com.lxy.molweightcalculator.ui.MainTheme
+import com.lxy.molweightcalculator.ui.MainUiState
 import com.lxy.molweightcalculator.ui.MainViewModel
 import com.lxy.molweightcalculator.ui.maxFractionHeight
-import com.lxy.molweightcalculator.util.SortUtil
-import com.lxy.molweightcalculator.util.Utility
-import timber.log.Timber
 
 private val viewModel = MainViewModel(SavedStateHandle())
 
@@ -45,19 +38,20 @@ private val viewModel = MainViewModel(SavedStateHandle())
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SettingsView(
-    precision: Float,
-    onPrecisionChange: (Float) -> Unit,
+    mainUiState: MainUiState,
     parseResult: ParseResult,
-    onParseResultChange: (ParseResult) -> Unit,
-    itemPadding: Dp
+    itemPadding: Dp,
+    modifier: Modifier
 ) {
-    var sortOrder by rememberSaveable {
-        mutableIntStateOf(0)
-    }
-    var sortMethod by rememberSaveable {
-        mutableIntStateOf(0)
-    }
-
+    FormulaView(
+        formulaViewState = mainUiState.formulaViewState,
+        parseResult = parseResult,
+        modifier = modifier
+    )
+    MolecularWeightView(
+        parseResult = parseResult,
+        precision = { mainUiState.precision }
+    )
     FlowRow(
         horizontalArrangement = Arrangement.spacedBy(itemPadding),
         verticalArrangement = Arrangement.spacedBy(itemPadding),
@@ -69,50 +63,26 @@ fun SettingsView(
                 .weight(1f),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            PrecisionLabelView(precision = precision)
+            PrecisionLabelView(precision = mainUiState.precision)
             PrecisionSliderView(
-                precision = precision,
-                onPrecisionChange = onPrecisionChange,
+                precision = mainUiState.precision,
+                onPrecisionChange = { mainUiState.precision = it },
                 modifier = Modifier
                     .padding(start = 8.dp)
                     .widthIn(min = 200.dp)
             )
         }
-        DropDownView(
-            label = stringResource(id = R.string.sort_order_label),
-            options = stringArrayResource(id = R.array.sort_orders),
-            onItemSelected = {
-                sortOrder = it
-                if (parseResult.succeeded) {
-                    SortUtil.sortStatistics(
-                        parseResult = parseResult,
-                        onParseResultChange = onParseResultChange,
-                        sortOrder = sortOrder,
-                        sortMethod = sortMethod
-                    )
-                }
-            },
-            modifier = Modifier
-                .widthIn(max = 300.dp)
-                .weight(1f)
+        SortOrderView(
+            parseResult = parseResult,
+            sortMethodState = mainUiState.sortMethodState,
+            sortOrderState = mainUiState.sortOrderState,
+            modifier = Modifier.weight(1f)
         )
-        DropDownView(
-            label = stringResource(id = R.string.sort_method_label),
-            options = stringArrayResource(id = R.array.sort_methods),
-            onItemSelected = {
-                sortMethod = it
-                if (parseResult.succeeded) {
-                    SortUtil.sortStatistics(
-                        parseResult = parseResult,
-                        onParseResultChange = onParseResultChange,
-                        sortOrder = sortOrder,
-                        sortMethod = sortMethod
-                    )
-                }
-            },
-            modifier = Modifier
-                .widthIn(max = 300.dp)
-                .weight(1f)
+        SortMethodView(
+            parseResult = parseResult,
+            sortMethodState = mainUiState.sortMethodState,
+            sortOrderState = mainUiState.sortOrderState,
+            modifier = Modifier.weight(1f)
         )
     }
 }
@@ -120,23 +90,15 @@ fun SettingsView(
 
 @Composable
 fun MainView() {
-    var deviceKind by rememberSaveable {
+    val mainUiState by rememberSaveable {
+        mutableStateOf(MainUiState())
+    }
+    var deviceKind by remember {
         mutableStateOf(DeviceKind.Phone)
     }
-    var firstPaneWeight by rememberSaveable {
+    var firstPaneWeight by remember {
         mutableFloatStateOf(Float.NaN)
     }
-    var precision by rememberSaveable {
-        mutableFloatStateOf(Utility.DEFAULT_PRECISION.toFloat())
-    }
-    val onParseResultChange = { parseResult: ParseResult ->
-        if (BuildConfig.DEBUG) {
-            Timber.d("Parse result: %s", parseResult.debugToString())
-        }
-        viewModel.parseResult = parseResult
-    }
-
-    val onPrecisionChange = { it: Float -> precision = it }
 
     val contentPadding: Dp
     val itemPadding: Dp
@@ -192,20 +154,13 @@ fun MainView() {
                                 .padding(end = hingePadding),
                             verticalArrangement = Arrangement.spacedBy(itemPadding)
                         ) {
-                            FormulaView(
+                            SettingsView(
+                                mainUiState = mainUiState,
                                 parseResult = parseResult,
-                                onParseResultChange = onParseResultChange,
-                                precision = { precision },
+                                itemPadding = itemPadding,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .weight(1f)
-                            )
-                            SettingsView(
-                                precision = precision,
-                                onPrecisionChange = onPrecisionChange,
-                                parseResult = parseResult,
-                                onParseResultChange = onParseResultChange,
-                                itemPadding = itemPadding
                             )
                         }
                         StatisticsView(
@@ -240,19 +195,12 @@ fun MainView() {
                                 .padding(bottom = 16.dp),
                             verticalArrangement = Arrangement.spacedBy(itemPadding)
                         ) {
-                            FormulaView(
+                            SettingsView(
+                                mainUiState = mainUiState,
                                 parseResult = parseResult,
-                                onParseResultChange = onParseResultChange,
-                                precision = { precision },
+                                itemPadding = itemPadding,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                            )
-                            SettingsView(
-                                precision = precision,
-                                onPrecisionChange = onPrecisionChange,
-                                parseResult = parseResult,
-                                onParseResultChange = onParseResultChange,
-                                itemPadding = itemPadding
                             )
                         }
                     }
@@ -263,20 +211,13 @@ fun MainView() {
                         modifier = containerModifier,
                         verticalArrangement = Arrangement.spacedBy(itemPadding)
                     ) {
-                        FormulaView(
+                        SettingsView(
+                            mainUiState = mainUiState,
                             parseResult = parseResult,
-                            onParseResultChange = onParseResultChange,
-                            precision = { precision },
+                            itemPadding = itemPadding,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .maxFractionHeight(0.45f)
-                        )
-                        SettingsView(
-                            precision = precision,
-                            onPrecisionChange = onPrecisionChange,
-                            parseResult = parseResult,
-                            onParseResultChange = onParseResultChange,
-                            itemPadding = itemPadding
                         )
                         StatisticsView(
                             parseResult = parseResult,

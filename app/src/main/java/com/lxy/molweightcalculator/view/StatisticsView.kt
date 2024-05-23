@@ -12,22 +12,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.util.fastForEach
 import com.lxy.molweightcalculator.R
 import com.lxy.molweightcalculator.parsing.MassRatio
 import com.lxy.molweightcalculator.parsing.ParseResult
 import com.lxy.molweightcalculator.util.Utility
 
 
-class Symbol(private val description: String) {
-    override fun toString(): String {
-        return "Symbol($description)"
-    }
-}
-
-
-private val ElementNameType = Symbol("ElementName")
-private val ElementCountType = Symbol("ElementCount")
-private val MassRatioType = Symbol("MassRatio")
+private val ElementNameType = Any()
+private val ElementCountType = Any()
+private val MassRatioType = Any()
 
 
 @Composable
@@ -65,7 +59,7 @@ fun StatisticsView(
             verticalArrangement = Arrangement.spacedBy(spacing),
             columns = GridCells.Fixed(Utility.COLUMN_COUNT),
         ) {
-            parseResult.statistics.forEach {
+            parseResult.statistics.fastForEach {
                 val grid = this@LazyVerticalGrid
                 grid.item(contentType = ElementNameType) {
                     GridItem(text = it.elementId.elementName)
@@ -74,10 +68,7 @@ fun StatisticsView(
                     GridItem(text = it.count.toString())
                 }
                 grid.item(contentType = MassRatioType) {
-                    GridItem(text = run {
-                        val massRatio = parseResult.calculateMassRatio(it)
-                        MassRatio.massRatioString(massRatio)
-                    })
+                    GridItem(text = MassRatio.valueOf(parseResult.weight, it).string)
                 }
             }
         }

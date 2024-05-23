@@ -81,34 +81,40 @@ object Parser {
 
     private fun handleRightBracket(
         leftBracket: Bracket,
-        rightBracket: Bracket
-    ): ParseResult? {
+        rightBracket: Bracket,
+        parseResult: ParseResult
+    ): Boolean {
         val top1 = parseStack.pop()
         val top2 = parseStack.peekNoThrow()
         if (top2 == null || top1.bracket != leftBracket) {
-            return ParseResult(index, rightBracket.ordinal, ErrorCode.MismatchedBracket)
+            parseResult.init(index, rightBracket.ordinal, ErrorCode.MismatchedBracket)
+            return false
         }
         if (top1.size() == 0) {
-            return ParseResult(index - 1, index, ErrorCode.NoElement)
+            parseResult.init(index - 1, index, ErrorCode.NoElement)
+            return false
         }
         index++
         val start = index
         val count = parseQuantity()
         if (count < 0) {
-            return ParseResult(start, index, ErrorCode.ElementCountTooLarge)
+            parseResult.init(start, index, ErrorCode.ElementCountTooLarge)
+            return false
         }
         if (!top2.merge(top1, count)) {
-            return ParseResult.ELEMENT_COUNT_OVERFLOW
+            parseResult.init(ErrorCode.ElementCountOverflow)
+            return false
         }
         val weight = top2.weight + top1.weight * count
         if (!weight.isFinite()) {
-            return ParseResult.WEIGHT_OVERFLOW
+            parseResult.init(ErrorCode.WeightOverflow)
+            return false
         }
         top2.weight = weight
-        return null
+        return true
     }
 
-    private fun parse(): ParseResult {
+    private fun parse(parseResult: ParseResult) {
         parseStack.push(ParseState.DEFAULT_BRACKET, ParseState.DEFAULT_START)
         while (index < length) {
             // Inlined parseCompound
@@ -118,21 +124,25 @@ object Parser {
                 val state = parseStack.peek()
                 val quantity = parseQuantity()
                 if (quantity < 0) {
-                    return ParseResult(start, index, ErrorCode.ElementCountTooLarge)
+                    parseResult.init(start, index, ErrorCode.ElementCountTooLarge)
+                    return
                 }
                 if (!state.addValueOrPut(elementId.value, quantity)) {
-                    return ParseResult.ELEMENT_COUNT_OVERFLOW
+                    parseResult.init(ErrorCode.ElementCountOverflow)
+                    return
                 }
                 val elementWeight = elementId.weight
                 if (elementWeight.isNaN()) {
                     if (BuildConfig.DEBUG) {
                         Timber.d("Invalid element: %s", elementId.elementName)
                     }
-                    return ParseResult(start, index, ErrorCode.InvalidElement)
+                    parseResult.init(start, index, ErrorCode.InvalidElement)
+                    return
                 }
                 val weight = state.weight + elementWeight * quantity
                 if (!weight.isFinite()) {
-                    return ParseResult.WEIGHT_OVERFLOW
+                    parseResult.init(ErrorCode.WeightOverflow)
+                    return
                 }
                 state.weight = weight
             } else {
@@ -142,75 +152,77 @@ object Parser {
                     '[' -> handleLeftBracket(Bracket.LeftSquareBracket)
                     '{' -> handleLeftBracket(Bracket.LeftCurlyBracket)
                     ')' -> {
-                        val parseResult = handleRightBracket(
-                            Bracket.LeftBracket,
-                            Bracket.RightBracket
-                        )
-                        if (parseResult != null) {
-                            return parseResult
+                        if (!handleRightBracket(
+                                Bracket.LeftBracket,
+                                Bracket.RightBracket,
+                                parseResult
+                            )
+                        ) {
+                            return
                         }
                     }
 
                     ']' -> {
-                        val parseResult = handleRightBracket(
-                            Bracket.LeftSquareBracket,
-                            Bracket.RightSquareBracket
-                        )
-                        if (parseResult != null) {
-                            return parseResult
+                        if (!handleRightBracket(
+                                Bracket.LeftSquareBracket,
+                                Bracket.RightSquareBracket,
+                                parseResult
+                            )
+                        ) {
+                            return
                         }
                     }
 
                     '}' -> {
-                        val parseResult = handleRightBracket(
-                            Bracket.LeftCurlyBracket,
-                            Bracket.RightCurlyBracket
-                        )
-                        if (parseResult != null) {
-                            return parseResult
+                        if (!handleRightBracket(
+                                Bracket.LeftCurlyBracket,
+                                Bracket.RightCurlyBracket,
+                                parseResult
+                            )
+                        ) {
+                            return
                         }
                     }
 
                     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' -> {
-                        return ParseResult(index, index + 1, ErrorCode.NoElement)
+                        parseResult.init(index, index + 1, ErrorCode.NoElement)
+                        return
                     }
 
                     else -> {
-                        return ParseResult(index, index + 1, ErrorCode.InvalidToken)
+                        parseResult.init(index, index + 1, ErrorCode.InvalidToken)
+                        return
                     }
                 }
             }
         }
         val state = parseStack.pop()
         if (!parseStack.isEmpty) {
-            return ParseResult(
+            parseResult.init(
                 state.start, state.bracket.ordinal,
                 ErrorCode.MismatchedBracket
             )
+            return
         }
         tryPurgeMemory()
-        val weight = state.weight
-        val list = ArrayList<StatisticsItem>(state.size())
-        val size = state.size()
-        for (i in 0 until size) {
-            list.add(i, StatisticsItem(ElementId(state.keyAt(i)), state.valueAt(i)))
-        }
-        return ParseResult(list, weight)
+        parseResult.init(state)
     }
 
     private const val RADIX = 10L
     private const val LIMIT = -Long.MAX_VALUE
     private const val MULTIPLY_LIMIT = LIMIT / RADIX
 
-    fun parse(formula: CharSequence): ParseResult {
+    fun parse(formula: CharSequence, parseResult: ParseResult) {
         val length = formula.length
         if (length == 0) {
-            return ParseResult.EMPTY_FORMULA
+            parseResult.init(ErrorCode.EmptyFormula)
+            return
         }
         if (!ParseResult.canParse(length)) {
-            return ParseResult.FORMULA_TOO_LONG
+            parseResult.init(ErrorCode.FormulaTooLong)
+            return
         }
         init(formula, length)
-        return parse()
+        parse(parseResult)
     }
 }

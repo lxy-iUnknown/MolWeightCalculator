@@ -2,6 +2,7 @@ package com.lxy.molweightcalculator.util
 
 import com.lxy.molweightcalculator.BuildConfig
 import com.lxy.molweightcalculator.contract.Contract
+import com.lxy.molweightcalculator.parsing.MassRatio
 import com.lxy.molweightcalculator.parsing.ParseResult
 import com.lxy.molweightcalculator.parsing.StatisticsItem
 import timber.log.Timber
@@ -61,17 +62,17 @@ object SortUtil {
 
     fun sortStatistics(
         parseResult: ParseResult,
-        onParseResultChange: (ParseResult) -> Unit,
         sortOrder: Int,
         sortMethod: Int
     ) {
         fun massRatioComparator(o1: StatisticsItem, o2: StatisticsItem): Int {
-            val key1 = parseResult.calculateMassRatio(o1)
-            val key2 = parseResult.calculateMassRatio(o2)
-            if (key1 == key2) {
+            val weight = parseResult.weight
+            val key1 = MassRatio.valueOf(weight, o1)
+            val key2 = MassRatio.valueOf(weight, o2)
+            if (key1.value == key2.value) {
                 return elementIdComparator(o1, o2)
             }
-            return if (key1 > key2) 1 else -1
+            return if (key1.value > key2.value) 1 else -1
         }
 
         if (BuildConfig.DEBUG) {
@@ -102,6 +103,6 @@ object SortUtil {
 
             else -> invalidsSortOrder(sortOrder)
         }
-        onParseResultChange(parseResult.sort(comparator))
+        parseResult.statistics.sortedWith(comparator)
     }
 }

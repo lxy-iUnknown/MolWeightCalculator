@@ -1,11 +1,11 @@
 package com.lxy.molweightcalculator.parsing
 
 import com.lxy.molweightcalculator.BuildConfig
-import com.lxy.molweightcalculator.util.IStatistics
 import com.lxy.molweightcalculator.util.MathUtil.addExact
 import com.lxy.molweightcalculator.util.MathUtil.multiplyAddExact
 import com.lxy.molweightcalculator.util.MathUtil.multiplyExact
 import com.lxy.molweightcalculator.util.Utility
+import com.lxy.molweightcalculator.util.Utility.appendStatistics
 
 class ParseState(bracket: Bracket, start: Int) {
     private var keys: CharArray
@@ -171,19 +171,11 @@ class ParseState(bracket: Bracket, start: Int) {
         if (!BuildConfig.DEBUG) {
             return super.toString()
         }
-        val sb = StringBuilder("ParseState(statistics=")
-        IStatistics.appendStatistics(sb, object : IStatistics {
-            override fun size(): Int {
-                return size
-            }
-
-            override fun forEach(function: IStatistics.TraverseFunction) {
-                for (i in 0 until this@ParseState.size()) {
-                    function.visit(ElementId(keyAt(i)), valueAt(i))
-                }
-            }
-        })
-        return sb.append(", bracket=\"")
+        return StringBuilder("ParseState(statistics=")
+            .appendStatistics((0 until this@ParseState.size()).map {
+                Pair(ElementId(keyAt(it)), valueAt(it))
+            })
+            .append(", bracket=\"")
             .append(if (bracket == Bracket.Invalid) "<no bracket>" else getBracketString(bracket))
             .append("\", start=")
             .append(start)
