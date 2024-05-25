@@ -3,6 +3,7 @@ package com.lxy.molweightcalculator.parsing
 import com.lxy.molweightcalculator.BuildConfig
 import com.lxy.molweightcalculator.contract.Contract
 import com.lxy.molweightcalculator.contract.Value
+import com.lxy.molweightcalculator.util.MathUtil
 
 
 @JvmInline
@@ -13,7 +14,6 @@ value class ElementId(val value: Char) {
         const val MAX_VALUE = BASE + BASE * BASE - 1
         const val INVALID_VALUE: Int = -1
 
-        val MAX: ElementId = ElementId(MAX_VALUE.toChar())
         val INVALID: ElementId = ElementId(INVALID_VALUE.toChar())
 
         fun valueOf(firstChar: Char): ElementId {
@@ -53,14 +53,15 @@ value class ElementId(val value: Char) {
 
     val elementName: String
         get() {
-            if (value.code < BASE) {
-                return ('A'.code + value.code).toChar().toString()
+            val code = value.code
+            if (code < BASE) {
+                return ('A'.code + code).toChar().toString()
             } else {
-                val div = value.code / BASE
+                val div = MathUtil.div26(code)
                 return String(
                     charArrayOf(
                         (('A'.code - 1) + div).toChar(),
-                        ('a'.code + value.code - div * BASE).toChar()
+                        ('a'.code + code - div * BASE).toChar()
                     ), 0, 2
                 )
             }

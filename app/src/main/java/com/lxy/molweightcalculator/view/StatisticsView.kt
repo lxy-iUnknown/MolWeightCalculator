@@ -14,7 +14,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.util.fastForEach
 import com.lxy.molweightcalculator.R
-import com.lxy.molweightcalculator.parsing.MassRatio
+import com.lxy.molweightcalculator.ui.MassRatio
 import com.lxy.molweightcalculator.parsing.ParseResult
 import com.lxy.molweightcalculator.util.Utility
 
@@ -32,7 +32,11 @@ fun StatisticsView(
 ) {
     @Composable
     fun GridItem(text: String, modifier: Modifier = Modifier) {
-        Text(text = text, textAlign = TextAlign.Center, modifier = modifier)
+        Text(
+            text = text,
+            textAlign = TextAlign.Center,
+            modifier = modifier
+        )
     }
 
     Column(modifier = modifier) {

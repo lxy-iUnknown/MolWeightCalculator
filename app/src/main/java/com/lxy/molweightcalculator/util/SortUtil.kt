@@ -2,7 +2,7 @@ package com.lxy.molweightcalculator.util
 
 import com.lxy.molweightcalculator.BuildConfig
 import com.lxy.molweightcalculator.contract.Contract
-import com.lxy.molweightcalculator.parsing.MassRatio
+import com.lxy.molweightcalculator.ui.MassRatio
 import com.lxy.molweightcalculator.parsing.ParseResult
 import com.lxy.molweightcalculator.parsing.StatisticsItem
 import timber.log.Timber
