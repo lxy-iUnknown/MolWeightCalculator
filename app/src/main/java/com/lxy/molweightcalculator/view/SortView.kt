@@ -27,7 +27,7 @@ fun SortOrderView(
             if (parseResult.succeeded) {
                 SortUtil.sortStatistics(
                     parseResult = parseResult,
-                    sortOrder = sortOrderState.selectedIndex,
+                    sortOrder = it,
                     sortMethod = sortMethodState.selectedIndex
                 )
             }
@@ -52,7 +52,7 @@ fun SortMethodView(
                 SortUtil.sortStatistics(
                     parseResult = parseResult,
                     sortOrder = sortOrderState.selectedIndex,
-                    sortMethod = sortMethodState.selectedIndex
+                    sortMethod = it
                 )
             }
         },

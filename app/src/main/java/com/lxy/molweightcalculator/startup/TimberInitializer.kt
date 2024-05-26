@@ -1,4 +1,4 @@
-package com.lxy.molweightcalculator.util
+package com.lxy.molweightcalculator.startup
 
 import android.content.Context
 import androidx.startup.Initializer

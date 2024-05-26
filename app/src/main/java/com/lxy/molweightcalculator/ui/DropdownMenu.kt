@@ -2,6 +2,7 @@ package com.lxy.molweightcalculator.ui
 
 import android.os.Parcel
 import android.os.Parcelable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -30,6 +31,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.lxy.molweightcalculator.util.readBool
@@ -119,7 +121,10 @@ fun DropDownView(
     }
     if (state.expanded) {
         Dialog(onDismissRequest = { state.expanded = false }) {
-            Surface(shape = RoundedCornerShape(12.dp)) {
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.padding(16.dp)
+            ) {
                 val lazyListState = rememberLazyListState()
 
                 if (state.selectedIndex >= 0) {
@@ -129,33 +134,37 @@ fun DropDownView(
                 }
 
                 LazyColumn(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.padding(8.dp),
                     state = lazyListState
                 ) {
                     options.forEachIndexed { index, s ->
                         item {
-                            Text(
-                                text = s,
-                                color = run {
-                                    val colorScheme = MaterialTheme.colorScheme
-                                    if (index == state.selectedIndex)
-                                        colorScheme.primary
-                                    else
-                                        colorScheme.onSurfaceVariant
-                                },
-                                modifier = Modifier
-                                    .padding(16.dp)
-                                    .clickable {
-                                        onItemSelected(index)
-                                        state.expanded = false
-                                        state.selectedIndex = index
-                                    }
-                            )
-                            if (index < options.lastIndex) {
+                            Box(modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onItemSelected(index)
+                                    state.expanded = false
+                                    state.selectedIndex = index
+                                }) {
+                                Text(
+                                    text = s,
+                                    color = run {
+                                        val colorScheme = MaterialTheme.colorScheme
+                                        if (index == state.selectedIndex)
+                                            colorScheme.primary
+                                        else
+                                            colorScheme.onSurfaceVariant
+                                    },
+                                    modifier = Modifier.padding(12.dp)
+                                )
+                            }
+                        }
+                        if (index < options.lastIndex) {
+                            item {
                                 Box(
                                     modifier = Modifier
-                                        .padding(horizontal = 16.dp)
                                         .fillMaxWidth()
+                                        .background(Color.LightGray)
                                         .height(1.dp)
                                 )
                             }

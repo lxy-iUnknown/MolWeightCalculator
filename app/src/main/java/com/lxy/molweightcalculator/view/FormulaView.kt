@@ -27,6 +27,8 @@ import com.lxy.molweightcalculator.R
 import com.lxy.molweightcalculator.parsing.ErrorCode
 import com.lxy.molweightcalculator.parsing.ParseResult
 import com.lxy.molweightcalculator.parsing.Parser
+import com.lxy.molweightcalculator.ui.MainUiState
+import com.lxy.molweightcalculator.util.SortUtil
 import com.lxy.molweightcalculator.util.readBool
 import com.lxy.molweightcalculator.util.writeBool
 import timber.log.Timber
@@ -63,11 +65,12 @@ class FormulaViewState() : Parcelable {
 
 @Composable
 fun FormulaView(
-    formulaViewState: FormulaViewState,
+    mainUiState: MainUiState,
     parseResult: ParseResult,
     modifier: Modifier
 ) {
     val errorColor = MaterialTheme.colorScheme.error
+    val formulaViewState = mainUiState.formulaViewState
 
     OutlinedTextField(
         label = { Text(text = stringResource(id = R.string.formula_label)) },
@@ -79,6 +82,11 @@ fun FormulaView(
         onValueChange = {
             formulaViewState.formula = it
             Parser.parse(it, parseResult)
+            SortUtil.sortStatistics(
+                parseResult = parseResult,
+                sortOrder = mainUiState.sortOrderState.selectedIndex,
+                sortMethod = mainUiState.sortMethodState.selectedIndex
+            )
             if (BuildConfig.DEBUG) {
                 Timber.d("Parse result: %s", parseResult.debugToString())
             }

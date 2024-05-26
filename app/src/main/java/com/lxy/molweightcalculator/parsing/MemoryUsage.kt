@@ -4,7 +4,7 @@ import com.lxy.molweightcalculator.BuildConfig
 import com.lxy.molweightcalculator.contract.Contract
 import com.lxy.molweightcalculator.contract.Operator
 import com.lxy.molweightcalculator.contract.Value
-import com.lxy.molweightcalculator.util.MathUtil.multiplyAddExact
+import com.lxy.molweightcalculator.util.multiplyAddExact
 
 object MemoryUsage {
     private const val PURGE_THRESHOLD = 64 * 1024L // 64 KB

@@ -76,7 +76,7 @@ class ParseResult : Parcelable {
             return (value shr ERROR_CODE_SHIFT).toInt()
         }
 
-    val statistics: List<StatisticsItem> get() = list
+    val statistics: MutableList<StatisticsItem> get() = list
 
     val succeeded get() = list.isNotEmpty()
 

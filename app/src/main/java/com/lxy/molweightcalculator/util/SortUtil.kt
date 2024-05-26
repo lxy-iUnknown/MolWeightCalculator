@@ -2,9 +2,9 @@ package com.lxy.molweightcalculator.util
 
 import com.lxy.molweightcalculator.BuildConfig
 import com.lxy.molweightcalculator.contract.Contract
-import com.lxy.molweightcalculator.ui.MassRatio
 import com.lxy.molweightcalculator.parsing.ParseResult
 import com.lxy.molweightcalculator.parsing.StatisticsItem
+import com.lxy.molweightcalculator.ui.MassRatio
 import timber.log.Timber
 
 object SortUtil {
@@ -42,7 +42,6 @@ object SortUtil {
         }
     }
 
-
     private fun elementIdComparator(o1: StatisticsItem, o2: StatisticsItem): Int {
         return o1.elementId.value.compareTo(o2.elementId.value)
     }
@@ -67,17 +66,17 @@ object SortUtil {
     ) {
         fun massRatioComparator(o1: StatisticsItem, o2: StatisticsItem): Int {
             val weight = parseResult.weight
-            val key1 = MassRatio.valueOf(weight, o1)
-            val key2 = MassRatio.valueOf(weight, o2)
-            if (key1.value == key2.value) {
+            val key1 = MassRatio.valueOf(weight, o1).value
+            val key2 = MassRatio.valueOf(weight, o2).value
+            if (key1 == key2) {
                 return elementIdComparator(o1, o2)
             }
-            return if (key1.value > key2.value) 1 else -1
+            return if (key1 > key2) 1 else -1
         }
 
         if (BuildConfig.DEBUG) {
-            Timber.d("Sort method: ${sortMethodToString(sortMethod)}")
             Timber.d("Sort order: ${sortOrderToString(sortOrder)}")
+            Timber.d("Sort method: ${sortMethodToString(sortMethod)}")
         }
 
         val comparator = when (sortOrder) {
@@ -103,6 +102,6 @@ object SortUtil {
 
             else -> invalidsSortOrder(sortOrder)
         }
-        parseResult.statistics.sortedWith(comparator)
+        parseResult.statistics.sortWith(comparator)
     }
 }

@@ -36,8 +36,8 @@ fun MainTheme(
             DeviceKind.Phone,
             DeviceKind.PhoneLandscape -> {
                 Typography(
-                    bodySmall = TextStyle(fontSize = 14.sp),
-                    bodyLarge = TextStyle(fontSize = 18.sp)
+                    bodySmall = TextStyle(fontSize = 12.sp),
+                    bodyLarge = TextStyle(fontSize = 16.sp)
                 )
             }
 
@@ -45,15 +45,15 @@ fun MainTheme(
             DeviceKind.FoldingHorizontal,
             DeviceKind.FoldingVertical -> {
                 Typography(
-                    bodySmall = TextStyle(fontSize = 18.sp),
-                    bodyLarge = TextStyle(fontSize = 22.sp)
+                    bodySmall = TextStyle(fontSize = 16.sp),
+                    bodyLarge = TextStyle(fontSize = 20.sp)
                 )
             }
 
             DeviceKind.Large -> {
                 Typography(
-                    bodySmall = TextStyle(fontSize = 24.sp),
-                    bodyLarge = TextStyle(fontSize = 28.sp)
+                    bodySmall = TextStyle(fontSize = 22.sp),
+                    bodyLarge = TextStyle(fontSize = 24.sp)
                 )
             }
         },

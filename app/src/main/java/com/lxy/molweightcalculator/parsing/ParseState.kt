@@ -1,11 +1,11 @@
 package com.lxy.molweightcalculator.parsing
 
 import com.lxy.molweightcalculator.BuildConfig
-import com.lxy.molweightcalculator.util.MathUtil.addExact
-import com.lxy.molweightcalculator.util.MathUtil.multiplyAddExact
-import com.lxy.molweightcalculator.util.MathUtil.multiplyExact
 import com.lxy.molweightcalculator.util.Utility
 import com.lxy.molweightcalculator.util.Utility.appendStatistics
+import com.lxy.molweightcalculator.util.addExact
+import com.lxy.molweightcalculator.util.multiplyAddExact
+import com.lxy.molweightcalculator.util.multiplyExact
 
 class ParseState(bracket: Bracket, start: Int) {
     private var keys: CharArray
