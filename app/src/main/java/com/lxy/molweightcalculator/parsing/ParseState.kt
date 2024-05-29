@@ -17,17 +17,15 @@ class ParseState(bracket: Bracket, start: Int) {
         private set
     var weight = 0.0
 
+    companion object {
+        private val EMPTY_CHAR = CharArray(0)
+        private val EMPTY_LONG = LongArray(0)
+    }
+
     init {
         this.keys = EMPTY_CHAR
         this.values = EMPTY_LONG
         reset(bracket, start)
-    }
-
-    fun reset(bracket: Bracket, start: Int) {
-        this.size = 0
-        this.bracket = bracket
-        this.start = start
-        this.weight = 0.0
     }
 
     private fun insert(index: Int, key: Char, value: Long) {
@@ -40,8 +38,7 @@ class ParseState(bracket: Bracket, start: Int) {
             System.arraycopy(values, index, values, index + 1, size - index)
             values[index] = value
         } else {
-            val newSize = Utility.growSize(size)
-            MemoryUsage.memoryAllocated(STATE_ITEM_SIZE.toLong(), newSize)
+            val newSize = Utility.growSize(size).coerceAtMost(BuildConfig.ELEMENT_COUNT)
             // Keys
             val newKeys = CharArray(newSize)
             System.arraycopy(keys, 0, newKeys, 0, index)
@@ -65,6 +62,17 @@ class ParseState(bracket: Bracket, start: Int) {
         return keys.binarySearch(key, 0, size)
     }
 
+    private fun setValueAt(index: Int, value: Long) {
+        values[index] = value
+    }
+
+    fun reset(bracket: Bracket, start: Int) {
+        this.size = 0
+        this.bracket = bracket
+        this.start = start
+        this.weight = 0.0
+    }
+
     @Suppress("unused")
     fun put(key: Char, value: Long) {
         var i = indexOfKey(key)
@@ -85,8 +93,9 @@ class ParseState(bracket: Bracket, start: Int) {
         val keys2 = other.keys
         val values1 = values
         val values2 = other.values
-        val capacity2 = other.capacity()
-        val total = capacity() + capacity2
+        val size2 = other.capacity()
+        val total = Utility.incrementSize(size() + size2)
+            .coerceAtMost(BuildConfig.ELEMENT_COUNT)
         val newKeys = CharArray(total)
         val newValues = LongArray(total)
         var i = 0
@@ -128,7 +137,6 @@ class ParseState(bracket: Bracket, start: Int) {
             newKeys[newSize] = keys2[j++]
             newValues[newSize++] = newValue
         }
-        MemoryUsage.memoryAllocated(STATE_ITEM_SIZE.toLong(), capacity2)
         keys = newKeys
         values = newValues
         size = newSize
@@ -159,10 +167,6 @@ class ParseState(bracket: Bracket, start: Int) {
         return values[index]
     }
 
-    private fun setValueAt(index: Int, value: Long) {
-        values[index] = value
-    }
-
     fun size(): Int {
         return size
     }
@@ -176,37 +180,16 @@ class ParseState(bracket: Bracket, start: Int) {
                 Pair(ElementId(keyAt(it)), valueAt(it))
             })
             .append(", bracket=\"")
-            .append(if (bracket == Bracket.Invalid) "<no bracket>" else getBracketString(bracket))
+            .append(
+                if (bracket == Bracket.Invalid)
+                    "<no bracket>"
+                else
+                    Utility.getBracketString(bracket)
+            )
             .append("\", start=")
             .append(start)
             .append(", weight=")
             .append(weight)
             .append(')').toString()
-    }
-
-    companion object {
-        const val STATE_SIZE: Int = 8 +  // Object
-                4 +  // keys
-                4 +  // values
-                4 +  // size
-                4 +  // bracket
-                4 +  // start
-                8 // weight
-
-        val DEFAULT_BRACKET = Bracket.Invalid
-        const val DEFAULT_START = -1
-        private val BRACKET_STRINGS = arrayOf(
-            "", "(", ")", "[", "]", "{", "}"
-        )
-        private const val STATE_ITEM_SIZE = Character.BYTES + java.lang.Long.BYTES
-        private val EMPTY_CHAR = CharArray(0)
-        private val EMPTY_LONG = LongArray(0)
-        fun getBracketString(bracket: Int): String {
-            return BRACKET_STRINGS[bracket]
-        }
-
-        fun getBracketString(bracket: Bracket): String {
-            return getBracketString(bracket.ordinal)
-        }
     }
 }

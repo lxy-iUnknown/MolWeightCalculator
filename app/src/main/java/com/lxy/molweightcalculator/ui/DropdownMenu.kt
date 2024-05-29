@@ -23,19 +23,19 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import com.lxy.molweightcalculator.util.readBool
-import com.lxy.molweightcalculator.util.writeBool
 import kotlinx.coroutines.flow.emptyFlow
 
 
@@ -50,16 +50,13 @@ private val NullInteractionSource = object : MutableInteractionSource {
 
 @Stable
 class DropDownMenuState() : Parcelable {
-    var expanded by mutableStateOf(false)
     var selectedIndex by mutableIntStateOf(0)
 
     constructor(parcel: Parcel) : this() {
-        expanded = parcel.readBool()
         selectedIndex = parcel.readInt()
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeBool(expanded)
         parcel.writeInt(selectedIndex)
     }
 
@@ -78,19 +75,26 @@ class DropDownMenuState() : Parcelable {
     }
 }
 
+@Immutable
+class DropDownOptions(val value: Array<String>)
+
 // Enhanced dropdown view
 // Inspired by https://proandroiddev.com/improving-the-compose-dropdownmenu-88469b1ef34
 @Composable
 fun DropDownView(
     label: String,
-    options: Array<String>,
-    state: DropDownMenuState,
+    options: DropDownOptions,
+    selectedIndex: Int,
     onItemSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var expanded by remember {
+        mutableStateOf(false)
+    }
+
     Box(modifier = modifier.height(IntrinsicSize.Min)) {
         OutlinedTextField(
-            value = options[state.selectedIndex],
+            value = options.value[selectedIndex],
             onValueChange = {},
             modifier = Modifier
                 .fillMaxWidth(),
@@ -101,8 +105,8 @@ fun DropDownView(
                     Icons.Filled.ArrowDropDown,
                     null,
                     Modifier
-                        .rotate(if (state.expanded) 180f else 0f)
-                        .clickable { state.expanded = true }
+                        .rotate(if (expanded) 180f else 0f)
+                        .clickable { expanded = true }
                 )
             },
         )
@@ -115,21 +119,21 @@ fun DropDownView(
                     interactionSource = NullInteractionSource,
                     indication = null,
                     enabled = true,
-                    onClick = { state.expanded = true },
+                    onClick = { expanded = true },
                 )
         )
     }
-    if (state.expanded) {
-        Dialog(onDismissRequest = { state.expanded = false }) {
+    if (expanded) {
+        Dialog(onDismissRequest = { expanded = false }) {
             Surface(
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.padding(16.dp)
             ) {
                 val lazyListState = rememberLazyListState()
 
-                if (state.selectedIndex >= 0) {
+                if (selectedIndex >= 0) {
                     LaunchedEffect(ScrollToSelected) {
-                        lazyListState.animateScrollToItem(index = state.selectedIndex)
+                        lazyListState.animateScrollToItem(index = selectedIndex)
                     }
                 }
 
@@ -137,20 +141,19 @@ fun DropDownView(
                     modifier = Modifier.padding(8.dp),
                     state = lazyListState
                 ) {
-                    options.forEachIndexed { index, s ->
+                    options.value.forEachIndexed { index, s ->
                         item {
                             Box(modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
                                     onItemSelected(index)
-                                    state.expanded = false
-                                    state.selectedIndex = index
+                                    expanded = false
                                 }) {
                                 Text(
                                     text = s,
                                     color = run {
                                         val colorScheme = MaterialTheme.colorScheme
-                                        if (index == state.selectedIndex)
+                                        if (index == selectedIndex)
                                             colorScheme.primary
                                         else
                                             colorScheme.onSurfaceVariant
@@ -159,7 +162,7 @@ fun DropDownView(
                                 )
                             }
                         }
-                        if (index < options.lastIndex) {
+                        if (index < options.value.lastIndex) {
                             item {
                                 Box(
                                     modifier = Modifier

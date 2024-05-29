@@ -17,8 +17,9 @@ android {
         versionName = "1.0"
 
         @Suppress("UNCHECKED_CAST")
-        val parseElementData = extra["parseElementData"] as () -> Pair<String, String>
-        val (ordinals, weights) = parseElementData()
+        val parseElementData = extra["parseElementData"] as () -> Triple<String, String, String>
+        val (elementCount, ordinals, weights) = parseElementData()
+        buildConfigField("int", "ELEMENT_COUNT", elementCount)
         buildConfigField("int[]", "ELEMENT_ORDINALS", ordinals)
         buildConfigField("double[]", "ELEMENT_WEIGHTS", weights)
     }

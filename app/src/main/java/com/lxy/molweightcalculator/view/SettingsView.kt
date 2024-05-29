@@ -3,16 +3,13 @@ package com.lxy.molweightcalculator.view
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.lxy.molweightcalculator.parsing.ParseResult
 import com.lxy.molweightcalculator.ui.MainUiState
+import com.lxy.molweightcalculator.ui.SortInfo
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -23,7 +20,9 @@ fun SettingsView(
     modifier: Modifier
 ) {
     FormulaView(
-        mainUiState = mainUiState,
+        formula = mainUiState.formula,
+        onFormulaChange = { mainUiState.formula = it },
+        sortInfoProvider = { SortInfo(mainUiState.sortOrder, mainUiState.sortMethod) },
         parseResult = parseResult,
         modifier = modifier
     )
@@ -36,31 +35,25 @@ fun SettingsView(
         verticalArrangement = Arrangement.spacedBy(itemPadding),
         maxItemsInEachRow = 3
     ) {
-        Row(
+        PrecisionView(
+            precision = mainUiState.precision,
+            onPrecisionChange = { mainUiState.precision = it },
             modifier = Modifier
                 .align(Alignment.CenterVertically)
-                .weight(1f),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            PrecisionLabelView(precision = mainUiState.precision)
-            PrecisionSliderView(
-                precision = mainUiState.precision,
-                onPrecisionChange = { mainUiState.precision = it },
-                modifier = Modifier
-                    .padding(start = 8.dp)
-                    .widthIn(min = 200.dp)
-            )
-        }
+                .weight(1f)
+        )
         SortOrderView(
             parseResult = parseResult,
-            sortMethodState = mainUiState.sortMethodState,
-            sortOrderState = mainUiState.sortOrderState,
+            sortMethodProvider = { mainUiState.sortMethod },
+            sortOrder = mainUiState.sortOrder,
+            onSortOrderChange = { mainUiState.sortOrder = it },
             modifier = Modifier.weight(1f)
         )
         SortMethodView(
             parseResult = parseResult,
-            sortMethodState = mainUiState.sortMethodState,
-            sortOrderState = mainUiState.sortOrderState,
+            sortMethod = mainUiState.sortMethod,
+            sortOrderProvider = { mainUiState.sortOrder },
+            onSortMethodChange = { mainUiState.sortMethod = it },
             modifier = Modifier.weight(1f)
         )
     }

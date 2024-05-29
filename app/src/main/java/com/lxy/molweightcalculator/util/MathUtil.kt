@@ -70,7 +70,7 @@ fun Long.multiplyExact(other: Long): Long {
     checkArgument("other", other)
     val r = this * other
     if (((this or other) ushr 31 != 0L) && (other != 0L) && (r / other != this)) {
-        return -1
+        return Long.MIN_VALUE
     }
     return r
 }
@@ -78,11 +78,5 @@ fun Long.multiplyExact(other: Long): Long {
 // Similar to Math.multiplyExact, but assume x >= 0 and y >= 0
 fun Long.multiplyAddExact(x: Long, y: Long): Long {
     checkArgument("this", this)
-    checkArgument("x", x)
-    checkArgument("y", y)
-    val r = this * x
-    if (((this or x) ushr 31 != 0L) && (x != 0L) && (r / x != this)) {
-        return -1
-    }
-    return r + y
+    return x.multiplyExact(y) + this
 }

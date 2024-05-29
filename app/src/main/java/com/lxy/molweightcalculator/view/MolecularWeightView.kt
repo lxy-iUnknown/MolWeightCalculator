@@ -11,8 +11,8 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.style.BaselineShift
 import com.lxy.molweightcalculator.R
 import com.lxy.molweightcalculator.parsing.ParseResult
-import com.lxy.molweightcalculator.parsing.ParseState
 import com.lxy.molweightcalculator.ui.WeightString
+import com.lxy.molweightcalculator.util.Utility
 import kotlin.math.roundToInt
 
 @Composable
@@ -57,7 +57,7 @@ fun MolecularWeightView(
             var errorString = errorStrings[errorCode.ordinal]
             if (errorCode.isInvalidBracket) {
                 errorString = String.format(
-                    errorString, ParseState.getBracketString(parseResult.end)
+                    errorString, Utility.getBracketString(parseResult.end)
                 )
             }
             errorString

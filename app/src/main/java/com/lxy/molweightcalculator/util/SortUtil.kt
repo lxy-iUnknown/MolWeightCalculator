@@ -5,6 +5,8 @@ import com.lxy.molweightcalculator.contract.Contract
 import com.lxy.molweightcalculator.parsing.ParseResult
 import com.lxy.molweightcalculator.parsing.StatisticsItem
 import com.lxy.molweightcalculator.ui.MassRatio
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 object SortUtil {
@@ -16,12 +18,12 @@ object SortUtil {
     private const val ELEMENT_COUNT = 2
     private const val MASS_RATIO = 3
 
-    private fun <T> invalidsSortOrder(sortOrder: Int): T {
-        return Contract.fail("Invalid sort order: $sortOrder")
+    private fun invalidsSortOrder(sortOrder: Int): Nothing {
+        Contract.fail("Invalid sort order: $sortOrder")
     }
 
-    private fun <T> invalidsSortMethod(sortMethod: Int): T {
-        return Contract.fail("Invalid sort method: $sortMethod")
+    private fun invalidsSortMethod(sortMethod: Int): Nothing {
+        Contract.fail("Invalid sort method: $sortMethod")
     }
 
     private fun sortOrderToString(sortOrder: Int): String {
@@ -62,7 +64,8 @@ object SortUtil {
     fun sortStatistics(
         parseResult: ParseResult,
         sortOrder: Int,
-        sortMethod: Int
+        sortMethod: Int,
+        coroutineScope: CoroutineScope
     ) {
         fun massRatioComparator(o1: StatisticsItem, o2: StatisticsItem): Int {
             val weight = parseResult.weight
@@ -102,6 +105,13 @@ object SortUtil {
 
             else -> invalidsSortOrder(sortOrder)
         }
-        parseResult.statistics.sortWith(comparator)
+        val statistics = parseResult.statistics
+        if (statistics.size > Utility.BACKGROUND_THRESHOLD) {
+            coroutineScope.launch {
+                statistics.sortWith(comparator)
+            }
+        } else {
+            statistics.sortWith(comparator)
+        }
     }
 }

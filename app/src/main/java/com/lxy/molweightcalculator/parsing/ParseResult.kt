@@ -10,14 +10,17 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.lxy.molweightcalculator.BuildConfig
 import com.lxy.molweightcalculator.contract.Contract
 import com.lxy.molweightcalculator.util.HashCode
+import com.lxy.molweightcalculator.util.InvokeUtil
+import com.lxy.molweightcalculator.util.Utility
 import com.lxy.molweightcalculator.util.Utility.appendStatistics
 import com.lxy.molweightcalculator.util.readChar
 import com.lxy.molweightcalculator.util.writeChar
+import java.lang.invoke.MethodHandles
 
 
 @Stable
 class ParseResult : Parcelable {
-    private val list: MutableList<StatisticsItem>
+    private val list: SnapshotStateList<StatisticsItem>
     private var value by mutableLongStateOf(0)
 
     constructor() {
@@ -27,11 +30,11 @@ class ParseResult : Parcelable {
 
     private constructor(parcel: Parcel) {
         this.value = parcel.readLong()
-        val size = parcel.readInt()
-        val list = SnapshotStateList<StatisticsItem>()
-        for (i in 0 until size) {
-            list.add(StatisticsItem(ElementId(parcel.readChar()), parcel.readLong()))
+        val array = Array(parcel.readInt()) {
+            StatisticsItem(ElementId(parcel.readChar()), parcel.readLong())
         }
+        val list = SnapshotStateList<StatisticsItem>()
+        list.addAll(listOf(*array))
         this.list = list
     }
 
@@ -45,10 +48,15 @@ class ParseResult : Parcelable {
     }
 
     fun init(parseState: ParseState) {
-        list.clear()
-        list.addAll((0 until parseState.size()).map {
-            StatisticsItem(ElementId(parseState.keyAt(it)), parseState.valueAt(it))
-        })
+        InvokeUtil.SnapshotList_mutate(
+            SNAPSHOT_LIST_MUTATE, list
+        ) { builder: MutableList<StatisticsItem> ->
+            builder.clear()
+            builder.addAll((0 until parseState.size()).map {
+                StatisticsItem(ElementId(parseState.keyAt(it)), parseState.valueAt(it))
+            })
+            Unit
+        }
         value = parseState.weight.toRawBits()
     }
 
@@ -106,7 +114,7 @@ class ParseResult : Parcelable {
             var errorString = ERROR_MESSAGES[errorCode.ordinal]
             val end: Int
             if (errorCode.isInvalidBracket) {
-                errorString = errorString.format(ParseState.getBracketString(this.end))
+                errorString = errorString.format(Utility.getBracketString(this.end))
                 end = start + 1
             } else {
                 end = this.end
@@ -169,6 +177,14 @@ class ParseResult : Parcelable {
             "WEIGHT_OVERFLOW",
             "FORMULA_TOO_LONG"
         )
+
+        // Hacking into private method...
+        private val SNAPSHOT_LIST_MUTATE = run {
+            val method = SnapshotStateList::class.java
+                .getDeclaredMethod("mutate", Function1::class.java)
+            method.isAccessible = true
+            MethodHandles.lookup().unreflect(method)
+        }
 
         @Suppress("unused")
         @JvmField

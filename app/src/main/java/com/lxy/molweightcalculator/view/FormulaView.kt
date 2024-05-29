@@ -1,7 +1,5 @@
 package com.lxy.molweightcalculator.view
 
-import android.os.Parcel
-import android.os.Parcelable
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Clear
@@ -11,9 +9,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
@@ -27,79 +26,69 @@ import com.lxy.molweightcalculator.R
 import com.lxy.molweightcalculator.parsing.ErrorCode
 import com.lxy.molweightcalculator.parsing.ParseResult
 import com.lxy.molweightcalculator.parsing.Parser
-import com.lxy.molweightcalculator.ui.MainUiState
+import com.lxy.molweightcalculator.ui.SortInfo
 import com.lxy.molweightcalculator.util.SortUtil
-import com.lxy.molweightcalculator.util.readBool
-import com.lxy.molweightcalculator.util.writeBool
+import com.lxy.molweightcalculator.util.Utility
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
-@Stable
-class FormulaViewState() : Parcelable {
-    var formula by mutableStateOf("")
-    var isFocused by mutableStateOf(false)
-
-    constructor(parcel: Parcel) : this() {
-        formula = parcel.readString() ?: ""
-        isFocused = parcel.readBool()
-    }
-
-    override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeString(formula)
-        parcel.writeBool(isFocused)
-    }
-
-    override fun describeContents(): Int {
-        return 0
-    }
-
-    companion object CREATOR : Parcelable.Creator<FormulaViewState> {
-        override fun createFromParcel(parcel: Parcel): FormulaViewState {
-            return FormulaViewState(parcel)
-        }
-
-        override fun newArray(size: Int): Array<FormulaViewState?> {
-            return arrayOfNulls(size)
-        }
+fun parseFormula(
+    formula: String,
+    parseResult: ParseResult,
+) {
+    Parser(formula).parse(parseResult)
+    if (BuildConfig.DEBUG) {
+        Timber.d("Parse result: %s", parseResult.debugToString())
     }
 }
 
 @Composable
 fun FormulaView(
-    mainUiState: MainUiState,
+    formula: String,
+    onFormulaChange: (String) -> Unit,
+    sortInfoProvider: () -> SortInfo,
     parseResult: ParseResult,
     modifier: Modifier
 ) {
+    var isFocused by remember {
+        mutableStateOf(false)
+    }
     val errorColor = MaterialTheme.colorScheme.error
-    val formulaViewState = mainUiState.formulaViewState
+    val coroutineScope = rememberCoroutineScope()
 
     OutlinedTextField(
         label = { Text(text = stringResource(id = R.string.formula_label)) },
-        value = formulaViewState.formula,
+        value = formula,
         isError = !parseResult.succeeded,
         modifier = modifier.onFocusChanged {
-            formulaViewState.isFocused = it.isFocused
+            isFocused = it.isFocused
         },
         onValueChange = {
-            formulaViewState.formula = it
-            Parser.parse(it, parseResult)
+            val sortInfo = sortInfoProvider()
+            onFormulaChange(it)
+            if (it.length > Utility.BACKGROUND_THRESHOLD) {
+                coroutineScope.launch {
+                    parseFormula(it, parseResult)
+                }
+            } else {
+                parseFormula(it, parseResult)
+            }
             SortUtil.sortStatistics(
                 parseResult = parseResult,
-                sortOrder = mainUiState.sortOrderState.selectedIndex,
-                sortMethod = mainUiState.sortMethodState.selectedIndex
+                sortOrder = sortInfo.sortOrder,
+                sortMethod = sortInfo.sortMethod,
+                coroutineScope = coroutineScope
             )
-            if (BuildConfig.DEBUG) {
-                Timber.d("Parse result: %s", parseResult.debugToString())
-            }
         },
         trailingIcon = if (!parseResult.succeeded) {
             { Icon(imageVector = Icons.Outlined.Info, contentDescription = "error") }
-        } else if (formulaViewState.isFocused) {
+        } else if (isFocused) {
             {
                 Icon(
                     imageVector = Icons.Outlined.Clear,
                     contentDescription = "clear",
                     modifier = Modifier.clickable {
-                        formulaViewState.formula = ""
+                        onFormulaChange("")
                         parseResult.init(ErrorCode.EmptyFormula)
                     }
                 )

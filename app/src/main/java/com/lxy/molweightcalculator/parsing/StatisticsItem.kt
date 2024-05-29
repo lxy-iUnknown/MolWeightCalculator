@@ -1,13 +1,11 @@
 package com.lxy.molweightcalculator.parsing
 
-import androidx.compose.runtime.Immutable
 import com.lxy.molweightcalculator.BuildConfig
 import com.lxy.molweightcalculator.contract.Contract
 import com.lxy.molweightcalculator.contract.Operator
 import com.lxy.molweightcalculator.contract.Value
 import com.lxy.molweightcalculator.util.HashCode
 
-@Immutable
 class StatisticsItem(elementId: ElementId, count: Long) {
     val elementId: ElementId
     val count: Long

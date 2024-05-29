@@ -5,30 +5,30 @@ import android.os.Parcelable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.lxy.molweightcalculator.util.Utility
-import com.lxy.molweightcalculator.view.FormulaViewState
 
 @Stable
 class MainUiState() : Parcelable {
-    var formulaViewState by mutableStateOf(FormulaViewState())
+    var formula by mutableStateOf("")
     var precision by mutableFloatStateOf(Utility.DEFAULT_PRECISION.toFloat())
-    var sortOrderState by mutableStateOf(DropDownMenuState())
-    var sortMethodState by mutableStateOf(DropDownMenuState())
+    var sortOrder by mutableIntStateOf(0)
+    var sortMethod by mutableIntStateOf(0)
 
     constructor(parcel: Parcel) : this() {
-        formulaViewState = FormulaViewState(parcel)
+        formula = parcel.readString() ?: ""
         precision = parcel.readFloat()
-        sortOrderState = DropDownMenuState(parcel)
-        sortMethodState = DropDownMenuState(parcel)
+        sortOrder = parcel.readInt()
+        sortMethod = parcel.readInt()
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
-        formulaViewState.writeToParcel(parcel, flags)
+        parcel.writeString(formula)
         parcel.writeFloat(precision)
-        sortOrderState.writeToParcel(parcel, flags)
-        sortMethodState.writeToParcel(parcel, flags)
+        parcel.writeInt(sortOrder)
+        parcel.writeInt(sortMethod)
     }
 
     override fun describeContents(): Int {

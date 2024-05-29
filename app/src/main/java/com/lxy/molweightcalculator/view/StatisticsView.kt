@@ -18,6 +18,44 @@ import com.lxy.molweightcalculator.R
 import com.lxy.molweightcalculator.parsing.ParseResult
 import com.lxy.molweightcalculator.ui.MassRatio
 
+@Composable
+private fun Item(text: String, modifier: Modifier = Modifier) {
+    Text(
+        text = text,
+        textAlign = TextAlign.Center,
+        modifier = modifier
+    )
+}
+
+@Composable
+private fun StatisticsRow(
+    elementName: String,
+    elementCount: String,
+    massRatio: String,
+    modifier: Modifier = Modifier
+) {
+    Row(modifier = modifier) {
+        Item(
+            text = elementName,
+            modifier = Modifier
+                .weight(1f)
+                .align(Alignment.CenterVertically)
+        )
+        Item(
+            text = elementCount,
+            modifier = Modifier
+                .weight(1f)
+                .align(Alignment.CenterVertically)
+        )
+        Item(
+            text = massRatio,
+            modifier = Modifier
+                .weight(1f)
+                .align(Alignment.CenterVertically)
+        )
+    }
+}
+
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -26,44 +64,6 @@ fun StatisticsView(
     modifier: Modifier = Modifier,
     spacing: Dp,
 ) {
-    @Composable
-    fun Item(text: String, modifier: Modifier = Modifier) {
-        Text(
-            text = text,
-            textAlign = TextAlign.Center,
-            modifier = modifier
-        )
-    }
-
-    @Composable
-    fun StatisticsRow(
-        elementName: String,
-        elementCount: String,
-        massRatio: String,
-        modifier: Modifier = Modifier
-    ) {
-        Row(modifier = modifier) {
-            Item(
-                text = elementName,
-                modifier = Modifier
-                    .weight(1f)
-                    .align(Alignment.CenterVertically)
-            )
-            Item(
-                text = elementCount,
-                modifier = Modifier
-                    .weight(1f)
-                    .align(Alignment.CenterVertically)
-            )
-            Item(
-                text = massRatio,
-                modifier = Modifier
-                    .weight(1f)
-                    .align(Alignment.CenterVertically)
-            )
-        }
-    }
-
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(spacing)
@@ -77,7 +77,9 @@ fun StatisticsView(
             elementCount = stringResource(id = R.string.element_count),
             massRatio = stringResource(id = R.string.mass_ratio),
         )
-        LazyColumn {
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(spacing)
+        ) {
             parseResult.statistics.fastForEach {
                 item(key = it.elementId.value) {
                     StatisticsRow(

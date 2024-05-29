@@ -1,56 +1,26 @@
-package com.lxy.molweightcalculator.util;
+package com.lxy.molweightcalculator.util
 
-import android.annotation.SuppressLint;
-import android.os.Build;
+import android.annotation.SuppressLint
+import android.os.Build
 
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
+@SuppressLint("NewApi")
+object FormatUtil {
+    private val VAR_HANDLE_AVAILABLE = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
 
-import java.lang.invoke.MethodHandles;
-import java.lang.invoke.VarHandle;
-import java.nio.ByteOrder;
-
-// This part is moved to Java due to broken PolymorphicSignature compilation in Kotlin
-// See https://youtrack.jetbrains.com/issue/KT-60591/
-public class FormatUtil {
-    private static final boolean VAR_HANDLE_AVAILABLE =
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU;
-
-    @SuppressWarnings("deprecation")
-    @NonNull
-    public static String asciiToString(@NonNull byte[] array, int start, int size) {
-        return new String(array, 0, start, size);
+    @Suppress("deprecation")
+    fun asciiToString(array: ByteArray, start: Int, size: Int): String {
+        return java.lang.String(array, 0, start, size).toString()
     }
 
-    public static boolean varHandleAvailable() {
-        return VAR_HANDLE_AVAILABLE;
+    fun varHandleAvailable(): Boolean {
+        return VAR_HANDLE_AVAILABLE
     }
 
-    @SuppressLint("NewApi")
-    public static void setShort(@NonNull byte[] array, int index, short value) {
-        Api33Impl.setShort(array, index, value);
+    fun setShort(array: ByteArray, index: Int, value: Short) {
+        InvokeUtil.Api33Impl.VarHandle_setShort(array, index, value)
     }
 
-    @SuppressLint("NewApi")
-    public static void setInt(@NonNull byte[] array, int index, int value) {
-        Api33Impl.setInt(array, index, value);
-    }
-
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    private static class Api33Impl {
-        private static final VarHandle BYTE_TO_SHORT =
-                MethodHandles.byteArrayViewVarHandle(
-                        short[].class, ByteOrder.LITTLE_ENDIAN);
-        private static final VarHandle BYTE_TO_INT =
-                MethodHandles.byteArrayViewVarHandle(
-                        int[].class, ByteOrder.LITTLE_ENDIAN);
-
-        public static void setShort(@NonNull byte[] array, int index, short value) {
-            BYTE_TO_SHORT.set(array, index, value);
-        }
-
-        public static void setInt(@NonNull byte[] array, int index, int value) {
-            BYTE_TO_INT.set(array, index, value);
-        }
+    fun setInt(array: ByteArray, index: Int, value: Int) {
+        InvokeUtil.Api33Impl.VarHandle_setInt(array, index, value)
     }
 }

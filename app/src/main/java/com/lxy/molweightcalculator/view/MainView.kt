@@ -24,6 +24,7 @@ import com.lxy.molweightcalculator.ui.DeviceKind
 import com.lxy.molweightcalculator.ui.MainTheme
 import com.lxy.molweightcalculator.ui.MainUiState
 import com.lxy.molweightcalculator.ui.MainViewModel
+import com.lxy.molweightcalculator.ui.OnDeviceChange
 import com.lxy.molweightcalculator.ui.PaneWeight
 import com.lxy.molweightcalculator.ui.maxFractionHeight
 
@@ -42,7 +43,7 @@ fun MainView() {
         mutableStateOf(PaneWeight.INVALID)
     }
 
-    DeviceKind.RegisterChanges(
+    OnDeviceChange(
         onDeviceKindChange = { deviceKind = it },
         onPaneWeightChange = { paneWeight = it },
     ) {

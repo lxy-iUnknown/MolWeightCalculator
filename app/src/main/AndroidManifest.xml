@@ -21,9 +21,7 @@
             android:authorities="com.lxy.molweightcalculator.androidx-startup"
             android:exported="false"
             tools:node="merge">
-            <meta-data android:name="com.lxy.molweightcalculator.startup.TimberInitializer"
-                android:value="androidx.startup" />
-            <meta-data android:name="com.lxy.molweightcalculator.startup.ProfileInitializer"
+            <meta-data android:name="com.lxy.molweightcalculator.startup.GlobalInitializer"
                 android:value="androidx.startup" />
         </provider>
     </application>

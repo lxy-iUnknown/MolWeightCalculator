@@ -134,7 +134,7 @@ buildscript {
         return firstChar.code * 26 + secondChar.code - (('A'.code - 1) * 26 + 'a'.code)
     }
 
-    fun parseElementData(): Pair<String, String> {
+    fun parseElementData(): Triple<String, String, String> {
         val arraySize = elementIdMax + 1
         val elementOrdinals = IntArray(arraySize)
         val elementWeights = DoubleArray(arraySize)
@@ -159,7 +159,8 @@ buildscript {
             elementWeights[elementId] = weight
             elementOrdinals[elementId] = ordinal++
         }
-        return Pair(
+        return Triple(
+            elementData.size.toString(),
             elementOrdinals.joinToString(prefix = "{", postfix = "}"),
             elementWeights.joinToString(prefix = "{", postfix = "}") {
                 if (it.isNaN()) "Double.NaN" else it.toString()

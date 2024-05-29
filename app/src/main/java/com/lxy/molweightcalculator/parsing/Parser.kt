@@ -1,6 +1,8 @@
 package com.lxy.molweightcalculator.parsing
 
 import com.lxy.molweightcalculator.BuildConfig
+import com.lxy.molweightcalculator.contract.Contract
+import com.lxy.molweightcalculator.util.Utility
 import timber.log.Timber
 
 // Handwritten recursive descent/LL(1) parser
@@ -14,24 +16,67 @@ import timber.log.Timber
 // Terminals:
 //     Atom: ("A" .. "Z")("a" .. "z")?
 //     Quantity: ("0" .. "9")+
-object Parser {
-    private val parseStack = ParseStack()
-    private lateinit var formula: CharSequence
-    private var length = 0
+class Parser(private val formula: CharSequence) {
+    // Parse stack
+    private var parseStack = arrayOfNulls<ParseState?>(Utility.INITIAL_CAPACITY)
+    private var stackTop = -1
+
+    // Parse information
+    private var length = formula.length
     private var index = 0
 
-    private fun init(formula: CharSequence, length: Int) {
-        this.formula = formula
-        this.length = length
-        this.parseStack.clear()
-        this.index = 0
+    companion object {
+        private const val RADIX = 10L
+        private const val LIMIT = -Long.MAX_VALUE
+        private const val MULTIPLY_LIMIT = LIMIT / RADIX
     }
 
-    private fun tryPurgeMemory() {
-        if (MemoryUsage.shouldPurge()) {
-            parseStack.purgeMemory()
-            MemoryUsage.reset()
+    private fun checkStack() {
+        if (stackIsEmpty) {
+            Contract.fail("Stack is empty")
         }
+    }
+
+    private val stackIsEmpty get() = stackSize() < 0
+
+    private fun stackGetItem(index: Int): ParseState {
+        return parseStack[index]!!
+    }
+
+    private fun stackPeekUnchecked(): ParseState {
+        return stackGetItem(stackTop)
+    }
+
+    private fun stackPeek(): ParseState {
+        checkStack()
+        return stackPeekUnchecked()
+    }
+
+    private fun stackPop(): ParseState {
+        checkStack()
+        return stackGetItem(stackTop--)
+    }
+
+    private fun stackPeekNoThrow(): ParseState? {
+        return if (stackIsEmpty) null else stackPeekUnchecked()
+    }
+
+    private fun stackSize(): Int {
+        return stackTop
+    }
+
+    private fun stackPush(bracket: Bracket, start: Int) {
+        val s = stackSize() + 1
+        if (s == parseStack.size) {
+            parseStack = parseStack.copyOf(Utility.growSize(s))
+        }
+        val state = parseStack[s]
+        if (state != null) {
+            state.reset(bracket, start)
+        } else {
+            parseStack[s] = ParseState(bracket, start)
+        }
+        stackTop = s
     }
 
     private fun parseQuantity(): Long {
@@ -76,7 +121,7 @@ object Parser {
     }
 
     private fun handleLeftBracket(bracket: Bracket) {
-        parseStack.push(bracket, index++)
+        stackPush(bracket, index++)
     }
 
     private fun handleRightBracket(
@@ -84,8 +129,8 @@ object Parser {
         rightBracket: Bracket,
         parseResult: ParseResult
     ): Boolean {
-        val top1 = parseStack.pop()
-        val top2 = parseStack.peekNoThrow()
+        val top1 = stackPop()
+        val top2 = stackPeekNoThrow()
         if (top2 == null || top1.bracket != leftBracket) {
             parseResult.init(index, rightBracket.ordinal, ErrorCode.MismatchedBracket)
             return false
@@ -114,14 +159,22 @@ object Parser {
         return true
     }
 
-    private fun parse(parseResult: ParseResult) {
-        parseStack.push(ParseState.DEFAULT_BRACKET, ParseState.DEFAULT_START)
+    fun parse(parseResult: ParseResult) {
+        if (length == 0) {
+            parseResult.init(ErrorCode.EmptyFormula)
+            return
+        }
+        if (!ParseResult.canParse(length)) {
+            parseResult.init(ErrorCode.FormulaTooLong)
+            return
+        }
+        stackPush(Bracket.Invalid, -1)
         while (index < length) {
             // Inlined parseCompound
             val start = index
             val elementId = parseElementId()
             if (elementId.isValid) {
-                val state = parseStack.peek()
+                val state = stackPeek()
                 val quantity = parseQuantity()
                 if (quantity < 0) {
                     parseResult.init(start, index, ErrorCode.ElementCountTooLarge)
@@ -196,33 +249,14 @@ object Parser {
                 }
             }
         }
-        val state = parseStack.pop()
-        if (!parseStack.isEmpty) {
+        val state = stackPop()
+        if (!stackIsEmpty) {
             parseResult.init(
                 state.start, state.bracket.ordinal,
                 ErrorCode.MismatchedBracket
             )
             return
         }
-        tryPurgeMemory()
         parseResult.init(state)
-    }
-
-    private const val RADIX = 10L
-    private const val LIMIT = -Long.MAX_VALUE
-    private const val MULTIPLY_LIMIT = LIMIT / RADIX
-
-    fun parse(formula: CharSequence, parseResult: ParseResult) {
-        val length = formula.length
-        if (length == 0) {
-            parseResult.init(ErrorCode.EmptyFormula)
-            return
-        }
-        if (!ParseResult.canParse(length)) {
-            parseResult.init(ErrorCode.FormulaTooLong)
-            return
-        }
-        init(formula, length)
-        parse(parseResult)
     }
 }
