@@ -9,13 +9,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.lxy.molweightcalculator.BuildConfig
 import com.lxy.molweightcalculator.contract.Contract
-import com.lxy.molweightcalculator.util.HashCode
-import com.lxy.molweightcalculator.util.InvokeUtil
 import com.lxy.molweightcalculator.util.Utility
 import com.lxy.molweightcalculator.util.Utility.appendStatistics
+import com.lxy.molweightcalculator.util.batchUpdate
+import com.lxy.molweightcalculator.util.buildEquals
+import com.lxy.molweightcalculator.util.mix
 import com.lxy.molweightcalculator.util.readChar
 import com.lxy.molweightcalculator.util.writeChar
-import java.lang.invoke.MethodHandles
 
 
 @Stable
@@ -48,14 +48,11 @@ class ParseResult : Parcelable {
     }
 
     fun init(parseState: ParseState) {
-        InvokeUtil.SnapshotList_mutate(
-            SNAPSHOT_LIST_MUTATE, list
-        ) { builder: MutableList<StatisticsItem> ->
-            builder.clear()
-            builder.addAll((0 until parseState.size()).map {
+        list.batchUpdate {
+            it.clear()
+            it.addAll((0 until parseState.size()).map {
                 StatisticsItem(ElementId(parseState.keyAt(it)), parseState.valueAt(it))
             })
-            Unit
         }
         value = parseState.weight.toRawBits()
     }
@@ -84,7 +81,7 @@ class ParseResult : Parcelable {
             return (value shr ERROR_CODE_SHIFT).toInt()
         }
 
-    val statistics: MutableList<StatisticsItem> get() = list
+    val statistics: SnapshotStateList<StatisticsItem> get() = list
 
     val succeeded get() = list.isNotEmpty()
 
@@ -129,34 +126,32 @@ class ParseResult : Parcelable {
     }
 
     override fun hashCode(): Int {
-        val hash = HashCode(value)
+        var hash = value.hashCode()
         for (item in statistics) {
-            hash.mix(item.hashCode())
+            hash = hash.mix(item)
         }
-        return hash.build()
+        return hash
     }
 
     override fun equals(other: Any?): Boolean {
-        if (this === other) {
-            return true
-        }
-        if (other is ParseResult) {
-            if (value != other.value) {
-                return false
-            }
-            val size = list.size
-            val statisticsOther = other.list
-            if (size != statisticsOther.size) {
-                return false
-            }
-            for (i in 0..size) {
-                if (!list[i].simpleEquals(statisticsOther[i])) {
-                    return false
+        return buildEquals(other) {
+            if (value != it.value) {
+                false
+            } else {
+                val size = list.size
+                val statisticsOther = it.list
+                if (size != statisticsOther.size) {
+                    false
+                } else {
+                    for (i in 0..size) {
+                        if (!list[i].simpleEquals(statisticsOther[i])) {
+                            return@buildEquals false
+                        }
+                    }
+                    true
                 }
             }
-            return true
         }
-        return false
     }
 
     companion object {
@@ -177,14 +172,6 @@ class ParseResult : Parcelable {
             "WEIGHT_OVERFLOW",
             "FORMULA_TOO_LONG"
         )
-
-        // Hacking into private method...
-        private val SNAPSHOT_LIST_MUTATE = run {
-            val method = SnapshotStateList::class.java
-                .getDeclaredMethod("mutate", Function1::class.java)
-            method.isAccessible = true
-            MethodHandles.lookup().unreflect(method)
-        }
 
         @Suppress("unused")
         @JvmField

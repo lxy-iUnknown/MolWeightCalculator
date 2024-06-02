@@ -9,7 +9,8 @@ import androidx.compose.ui.node.LayoutModifierNode
 import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.platform.InspectorInfo
 import androidx.compose.ui.unit.Constraints
-import com.lxy.molweightcalculator.util.HashCode
+import com.lxy.molweightcalculator.util.buildEquals
+import com.lxy.molweightcalculator.util.mix
 import kotlin.math.roundToInt
 
 
@@ -65,20 +66,14 @@ private class MaxFractionElement(
         node.fraction = fraction
     }
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) {
-            return true
-        }
-        if (other is MaxFractionElement) {
-            return direction == other.direction && fraction == other.fraction
-        }
-        return false
+    override fun hashCode(): Int {
+        return direction.hashCode().mix(fraction)
     }
 
-    override fun hashCode(): Int {
-        return HashCode(direction)
-            .mix(fraction)
-            .build()
+    override fun equals(other: Any?): Boolean {
+        return buildEquals(other) {
+            direction == it.direction && fraction == it.fraction
+        }
     }
 
     override fun InspectorInfo.inspectableProperties() {

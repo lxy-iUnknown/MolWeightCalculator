@@ -4,7 +4,8 @@ import com.lxy.molweightcalculator.BuildConfig
 import com.lxy.molweightcalculator.contract.Contract
 import com.lxy.molweightcalculator.contract.Operator
 import com.lxy.molweightcalculator.contract.Value
-import com.lxy.molweightcalculator.util.HashCode
+import com.lxy.molweightcalculator.util.buildEquals
+import com.lxy.molweightcalculator.util.mix
 
 class StatisticsItem(elementId: ElementId, count: Long) {
     val elementId: ElementId
@@ -23,19 +24,11 @@ class StatisticsItem(elementId: ElementId, count: Long) {
                 count == other.count
     }
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) {
-            return true
-        }
-        if (other is StatisticsItem) {
-            return simpleEquals(other)
-        }
-        return false
+    override fun hashCode(): Int {
+        return elementId.hashCode().mix(count)
     }
 
-    override fun hashCode(): Int {
-        return HashCode(elementId)
-            .mix(count)
-            .build()
+    override fun equals(other: Any?): Boolean {
+        return buildEquals(other, ::simpleEquals)
     }
 }

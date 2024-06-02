@@ -108,10 +108,10 @@ object SortUtil {
         val statistics = parseResult.statistics
         if (statistics.size > Utility.BACKGROUND_THRESHOLD) {
             coroutineScope.launch {
-                statistics.sortWith(comparator)
+                statistics.batchUpdate { it.sortWith(comparator) }
             }
         } else {
-            statistics.sortWith(comparator)
+            statistics.batchUpdate { it.sortWith(comparator) }
         }
     }
 }
