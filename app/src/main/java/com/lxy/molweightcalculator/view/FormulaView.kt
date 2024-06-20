@@ -9,11 +9,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.stringResource
@@ -29,6 +26,9 @@ import com.lxy.molweightcalculator.parsing.Parser
 import com.lxy.molweightcalculator.ui.SortInfo
 import com.lxy.molweightcalculator.util.SortUtil
 import com.lxy.molweightcalculator.util.Utility
+import com.lxy.molweightcalculator.util.getValue
+import com.lxy.molweightcalculator.util.mutableBooleanStateOf
+import com.lxy.molweightcalculator.util.setValue
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -51,7 +51,7 @@ fun FormulaView(
     modifier: Modifier
 ) {
     var isFocused by remember {
-        mutableStateOf(false)
+        mutableBooleanStateOf(false)
     }
     val errorColor = MaterialTheme.colorScheme.error
     val coroutineScope = rememberCoroutineScope()

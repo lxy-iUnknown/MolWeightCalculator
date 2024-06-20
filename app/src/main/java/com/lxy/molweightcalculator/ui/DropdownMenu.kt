@@ -28,7 +28,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -36,6 +35,9 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.lxy.molweightcalculator.util.getValue
+import com.lxy.molweightcalculator.util.mutableBooleanStateOf
+import com.lxy.molweightcalculator.util.setValue
 import kotlinx.coroutines.flow.emptyFlow
 
 
@@ -89,7 +91,7 @@ fun DropDownView(
     modifier: Modifier = Modifier
 ) {
     var expanded by remember {
-        mutableStateOf(false)
+        mutableBooleanStateOf(false)
     }
 
     Box(modifier = modifier.height(IntrinsicSize.Min)) {

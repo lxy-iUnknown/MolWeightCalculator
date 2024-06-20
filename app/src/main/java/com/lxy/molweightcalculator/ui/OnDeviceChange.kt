@@ -28,7 +28,7 @@ import kotlinx.coroutines.launch
 private val windowMetricsCalculator = WindowMetricsCalculator.getOrCreate()
 
 // 0.6f -> 0x3f19999a, 0.4f -> 0x3ecccccd
-private const val PHONE_LANDSCAPE_PANE_WEIGHTS = 0x3f19999a_3ecccccd
+private const val PHONE_LANDSCAPE_PANE_WEIGHTS = 0x3ecccccd_3f19999a
 
 @Composable
 fun OnDeviceChange(

@@ -19,3 +19,23 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+-keep class androidx.compose.runtime.snapshots.SnapshotStateList {
+    #noinspection ShrinkerUnresolvedReference
+    java.lang.Object mutate(kotlin.jvm.functions.Function1);
+}
+
+-keep class androidx.compose.runtime.snapshots.SnapshotKt {
+   androidx.compose.runtime.snapshots.Snapshot getSnapshotInitializer();
+   notifyWrite(
+       androidx.compose.runtime.snapshots.Snapshot,
+       androidx.compose.runtime.snapshots.StateObject
+   );
+   #noinspection ShrinkerUnresolvedReference
+   androidx.compose.runtime.snapshots.StateRecord overwritableRecord(
+       androidx.compose.runtime.snapshots.StateRecord,
+       androidx.compose.runtime.snapshots.StateObject,
+       androidx.compose.runtime.snapshots.Snapshot,
+       androidx.compose.runtime.snapshots.StateRecord
+   );
+}

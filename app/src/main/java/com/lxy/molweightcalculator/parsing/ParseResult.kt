@@ -13,6 +13,7 @@ import com.lxy.molweightcalculator.util.Utility
 import com.lxy.molweightcalculator.util.Utility.appendStatistics
 import com.lxy.molweightcalculator.util.batchUpdate
 import com.lxy.molweightcalculator.util.buildEquals
+import com.lxy.molweightcalculator.util.indexedCollection
 import com.lxy.molweightcalculator.util.mix
 import com.lxy.molweightcalculator.util.readChar
 import com.lxy.molweightcalculator.util.writeChar
@@ -30,11 +31,10 @@ class ParseResult : Parcelable {
 
     private constructor(parcel: Parcel) {
         this.value = parcel.readLong()
-        val array = Array(parcel.readInt()) {
-            StatisticsItem(ElementId(parcel.readChar()), parcel.readLong())
-        }
         val list = SnapshotStateList<StatisticsItem>()
-        list.addAll(listOf(*array))
+        list.addAll(indexedCollection(parcel.readInt()) {
+            StatisticsItem(ElementId(parcel.readChar()), parcel.readLong())
+        })
         this.list = list
     }
 
@@ -50,8 +50,8 @@ class ParseResult : Parcelable {
     fun init(parseState: ParseState) {
         list.batchUpdate {
             it.clear()
-            it.addAll((0 until parseState.size()).map {
-                StatisticsItem(ElementId(parseState.keyAt(it)), parseState.valueAt(it))
+            it.addAll(indexedCollection(parseState.size()) { index ->
+                StatisticsItem(ElementId(parseState.keyAt(index)), parseState.valueAt(index))
             })
         }
         value = parseState.weight.toRawBits()

@@ -8,19 +8,19 @@ object FormatUtil {
     private val VAR_HANDLE_AVAILABLE = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
 
     @Suppress("deprecation")
-    fun asciiToString(array: ByteArray, start: Int, size: Int): String {
-        return java.lang.String(array, 0, start, size).toString()
+    fun ByteArray.asciiToString(start: Int, size: Int): String {
+        return java.lang.String(this, 0, start, size).toString()
     }
 
     fun varHandleAvailable(): Boolean {
         return VAR_HANDLE_AVAILABLE
     }
 
-    fun setShort(array: ByteArray, index: Int, value: Short) {
-        InvokeUtil.Api33Impl.VarHandle_setShort(array, index, value)
+    fun ByteArray.setShort(index: Int, value: Short) {
+        InvokeUtil.Api33Impl.VarHandle_setShort(this, index, value)
     }
 
-    fun setInt(array: ByteArray, index: Int, value: Int) {
-        InvokeUtil.Api33Impl.VarHandle_setInt(array, index, value)
+    fun ByteArray.setInt(index: Int, value: Int) {
+        InvokeUtil.Api33Impl.VarHandle_setInt(this, index, value)
     }
 }

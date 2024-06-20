@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -84,6 +86,7 @@ fun MainView() {
                                 0.dp
                             else
                                 16.dp
+                        val state = rememberScrollState()
                         Row(
                             modifier = containerModifier,
                             horizontalArrangement = Arrangement.spacedBy(itemPadding)
@@ -93,16 +96,15 @@ fun MainView() {
                                     .height(IntrinsicSize.Min)
                                     .fillMaxHeight()
                                     .weight(paneWeight.first)
-                                    .padding(end = hingePadding),
+                                    .padding(end = hingePadding)
+                                    .verticalScroll(state),
                                 verticalArrangement = Arrangement.spacedBy(itemPadding)
                             ) {
                                 SettingsView(
                                     mainUiState = mainUiState,
                                     parseResult = parseResult,
                                     itemPadding = itemPadding,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .weight(1f)
+                                    modifier = Modifier.fillMaxWidth()
                                 )
                             }
                             StatisticsView(

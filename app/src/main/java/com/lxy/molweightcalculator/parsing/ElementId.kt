@@ -3,7 +3,9 @@ package com.lxy.molweightcalculator.parsing
 import com.lxy.molweightcalculator.BuildConfig
 import com.lxy.molweightcalculator.contract.Contract
 import com.lxy.molweightcalculator.contract.Value
-import com.lxy.molweightcalculator.util.FormatUtil
+import com.lxy.molweightcalculator.util.FormatUtil.asciiToString
+import com.lxy.molweightcalculator.util.FormatUtil.setShort
+import com.lxy.molweightcalculator.util.FormatUtil.varHandleAvailable
 import com.lxy.molweightcalculator.util.div26
 
 
@@ -124,14 +126,14 @@ value class ElementId(val value: Char) {
                 return ('A'.code + code).toChar().toString()
             } else {
                 val buffer = ByteArray(2)
-                if (FormatUtil.varHandleAvailable()) {
-                    FormatUtil.setShort(buffer, 0, ELEMENT_NAME_TWO_CHARS[code - BASE])
+                if (varHandleAvailable()) {
+                    buffer.setShort(0, ELEMENT_NAME_TWO_CHARS[code - BASE])
                 } else {
                     val div = code.div26()
                     buffer[0] = (('A'.code - 1) + div).toByte()
                     buffer[1] = ('a'.code + code - div * BASE).toByte()
                 }
-                return FormatUtil.asciiToString(buffer, 0, 2)
+                return buffer.asciiToString(0, 2)
             }
         }
 

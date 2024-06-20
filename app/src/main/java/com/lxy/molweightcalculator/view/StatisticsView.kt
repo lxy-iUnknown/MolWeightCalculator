@@ -5,27 +5,18 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.util.fastForEach
 import com.lxy.molweightcalculator.R
 import com.lxy.molweightcalculator.parsing.ParseResult
 import com.lxy.molweightcalculator.ui.MassRatio
-
-@Composable
-private fun Item(text: String, modifier: Modifier = Modifier) {
-    Text(
-        text = text,
-        textAlign = TextAlign.Center,
-        modifier = modifier
-    )
-}
 
 @Composable
 private fun StatisticsRow(
@@ -34,24 +25,24 @@ private fun StatisticsRow(
     massRatio: String,
     modifier: Modifier = Modifier
 ) {
-    Row(modifier = modifier) {
-        Item(
+    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
+        Text(
             text = elementName,
             modifier = Modifier
                 .weight(1f)
-                .align(Alignment.CenterVertically)
+                .wrapContentWidth()
         )
-        Item(
+        Text(
             text = elementCount,
             modifier = Modifier
                 .weight(1f)
-                .align(Alignment.CenterVertically)
+                .wrapContentWidth()
         )
-        Item(
+        Text(
             text = massRatio,
             modifier = Modifier
                 .weight(1f)
-                .align(Alignment.CenterVertically)
+                .wrapContentWidth()
         )
     }
 }
@@ -68,9 +59,11 @@ fun StatisticsView(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(spacing)
     ) {
-        Item(
+        Text(
             text = stringResource(id = R.string.statistics_table_title),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentWidth()
         )
         StatisticsRow(
             elementName = stringResource(id = R.string.element_name),
@@ -80,15 +73,16 @@ fun StatisticsView(
         LazyColumn(
             verticalArrangement = Arrangement.spacedBy(spacing)
         ) {
-            parseResult.statistics.fastForEach {
-                item(key = it.elementId.value) {
-                    StatisticsRow(
-                        elementName = it.elementId.elementName,
-                        elementCount = it.count.toString(),
-                        massRatio = MassRatio.valueOf(parseResult.weight, it).string,
-                        modifier = Modifier.animateItemPlacement()
-                    )
-                }
+            items(
+                items = parseResult.statistics,
+                key = { it.elementId.value }
+            ) {
+                StatisticsRow(
+                    elementName = it.elementId.elementName,
+                    elementCount = it.count.toString(),
+                    massRatio = MassRatio.valueOf(parseResult.weight, it).string,
+                    modifier = Modifier.animateItemPlacement()
+                )
             }
         }
     }

@@ -5,7 +5,10 @@ import com.lxy.molweightcalculator.BuildConfig
 import com.lxy.molweightcalculator.contract.Contract
 import com.lxy.molweightcalculator.contract.Value
 import com.lxy.molweightcalculator.parsing.StatisticsItem
-import com.lxy.molweightcalculator.util.FormatUtil
+import com.lxy.molweightcalculator.util.FormatUtil.asciiToString
+import com.lxy.molweightcalculator.util.FormatUtil.setInt
+import com.lxy.molweightcalculator.util.FormatUtil.setShort
+import com.lxy.molweightcalculator.util.FormatUtil.varHandleAvailable
 import com.lxy.molweightcalculator.util.div10
 import com.lxy.molweightcalculator.util.div100
 import com.lxy.molweightcalculator.util.div10K
@@ -53,8 +56,8 @@ value class MassRatio(val value: Int) {
             if (BuildConfig.DEBUG) {
                 Contract.requireInRangeInclusive(Value("value", value), 0, 99)
             }
-            if (FormatUtil.varHandleAvailable()) {
-                FormatUtil.setShort(buffer, index, TWO_DIGITS[value])
+            if (varHandleAvailable()) {
+                buffer.setShort(index, TWO_DIGITS[value])
             } else {
                 val div = value.div10()
                 buffer[index] = ('0'.code + div).toByte()
@@ -103,8 +106,8 @@ value class MassRatio(val value: Int) {
                 writeTwoDigits(buffer, 2, div)
                 2
             } else {
-                if (FormatUtil.varHandleAvailable()) {
-                    FormatUtil.setInt(buffer, 0, ONE_HUNDRED)
+                if (varHandleAvailable()) {
+                    buffer.setInt(0, ONE_HUNDRED)
                 } else {
                     buffer[1] = '1'.code.toByte()
                     buffer[2] = '0'.code.toByte()
@@ -124,6 +127,6 @@ value class MassRatio(val value: Int) {
             // 89
             index = appendTwoDigits(buffer, index, temp - div * 100)
             buffer[index++] = '%'.code.toByte()
-            return FormatUtil.asciiToString(buffer, start, index - start)
+            return buffer.asciiToString(start, index - start)
         }
 }
