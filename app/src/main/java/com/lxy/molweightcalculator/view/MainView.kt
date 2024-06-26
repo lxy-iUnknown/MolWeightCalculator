@@ -35,15 +35,10 @@ private val viewModel = MainViewModel(SavedStateHandle())
 
 @Composable
 fun MainView() {
-    val mainUiState by rememberSaveable {
-        mutableStateOf(MainUiState())
+    val mainUiState by rememberSaveable { mutableStateOf(MainUiState()) }
+    var deviceKind by remember { mutableStateOf(DeviceKind.Phone)
     }
-    var deviceKind by remember {
-        mutableStateOf(DeviceKind.Phone)
-    }
-    var paneWeight by remember {
-        mutableStateOf(PaneWeight.INVALID)
-    }
+    var paneWeight by remember { mutableStateOf(PaneWeight.INVALID) }
 
     OnDeviceChange(
         onDeviceKindChange = { deviceKind = it },

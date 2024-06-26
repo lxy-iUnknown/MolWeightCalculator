@@ -20,7 +20,7 @@ private object SnapshotUtil {
     val Snapshot_notifyWrite: MethodHandle
 
     init {
-        val snapshotKt = Class.forName("androidx.compose.runtime.snapshots.SnapshotKt") //kotlinStaticClass(Snapshot::class.java)
+        val snapshotKt = Class.forName("androidx.compose.runtime.snapshots.SnapshotKt")
         Snapshot_getSnapshotInitializer = snapshotKt.getPrivateMethod(
             "getSnapshotInitializer",
         )
@@ -64,10 +64,8 @@ interface MutableBooleanState : MutableState<Boolean> {
     @get:AutoboxingStateValueProperty("booleanValue")
     @set:AutoboxingStateValueProperty("booleanValue")
     override var value: Boolean
-        @Suppress("AutoBoxing") get() = booleanValue
-        set(value) {
-            booleanValue = value
-        }
+        get() = booleanValue
+        set(value) { booleanValue = value }
 
     var booleanValue: Boolean
 }

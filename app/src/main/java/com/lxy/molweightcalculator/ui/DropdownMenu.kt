@@ -52,7 +52,7 @@ private val NullInteractionSource = object : MutableInteractionSource {
 
 @Stable
 class DropDownMenuState() : Parcelable {
-    var selectedIndex by mutableIntStateOf(0)
+    private var selectedIndex by mutableIntStateOf(0)
 
     constructor(parcel: Parcel) : this() {
         selectedIndex = parcel.readInt()
@@ -90,9 +90,7 @@ fun DropDownView(
     onItemSelected: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var expanded by remember {
-        mutableBooleanStateOf(false)
-    }
+    var expanded by remember { mutableBooleanStateOf(false) }
 
     Box(modifier = modifier.height(IntrinsicSize.Min)) {
         OutlinedTextField(

@@ -50,9 +50,7 @@ fun FormulaView(
     parseResult: ParseResult,
     modifier: Modifier
 ) {
-    var isFocused by remember {
-        mutableBooleanStateOf(false)
-    }
+    var isFocused by remember { mutableBooleanStateOf(false) }
     val errorColor = MaterialTheme.colorScheme.error
     val coroutineScope = rememberCoroutineScope()
 
