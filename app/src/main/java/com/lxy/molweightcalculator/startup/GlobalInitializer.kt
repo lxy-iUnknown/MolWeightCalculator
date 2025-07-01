@@ -18,7 +18,7 @@ class GlobalInitializer : Initializer<Unit> {
         return if (BuildConfig.DEBUG)
             emptyList()
         else
-        // Install baseline profile
+            // Install baseline profile
             listOf(ProfileInstallerInitializer::class.java)
     }
 }
